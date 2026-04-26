@@ -1,32 +1,46 @@
 import json
-import random
+import base64
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.views.decorators.http import require_POST, require_GET
-from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Avg, Count
+from django.views.decorators.http import require_POST
+from django.db.models import Avg
 from django.contrib import messages
+from django.core.files.base import ContentFile
 
-from .models import IrregularVerb, GameSession
+from .models import IrregularVerb, GameSession, PlayerSnapshot
 
 
 def is_staff(user):
     return user.is_authenticated and user.is_staff
 
 
-# ─── MAIN APP (SPA page) ───────────────────────────────────────────────────
+# ─── ERROR HANDLERS ────────────────────────────────────────────────────────
+
+def error_400(request, exception=None):
+    return render(request, '400.html', status=400)
+
+def error_403(request, exception=None):
+    return render(request, '403.html', status=403)
+
+def error_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+def error_500(request):
+    return render(request, '500.html', status=500)
+
+
+# ─── MAIN APP ──────────────────────────────────────────────────────────────
 
 def index(request):
-    """Single page — the whole SPA loads here."""
     return render(request, 'game/index.html')
 
 
 # ─── API: VERBS ────────────────────────────────────────────────────────────
 
 def api_verbs(request):
-    """Return all verbs as JSON for the frontend."""
     verbs = list(IrregularVerb.objects.values('id', 'base', 'past', 'pp'))
     return JsonResponse({'verbs': verbs})
 
@@ -35,7 +49,6 @@ def api_verbs(request):
 
 @require_POST
 def api_save_session(request):
-    """Save a completed game session."""
     try:
         data = json.loads(request.body)
         session = GameSession.objects.create(
@@ -51,22 +64,54 @@ def api_save_session(request):
         return JsonResponse({'ok': False, 'error': str(e)}, status=400)
 
 
+# ─── API: SAVE SNAPSHOT ────────────────────────────────────────────────────
+
+@require_POST
+def api_save_snapshot(request):
+    try:
+        data = json.loads(request.body)
+        session_id  = data.get('session_id')
+        verb_index  = data.get('verb_index', 0)
+        verb_base   = data.get('verb_base', '')
+        image_data  = data.get('image')          # "data:image/jpeg;base64,....."
+
+        if not image_data or not session_id:
+            return JsonResponse({'ok': False, 'error': 'Missing data'}, status=400)
+
+        session = GameSession.objects.get(id=session_id)
+
+        # Strip the data-URL prefix
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+
+        image_bytes = base64.b64decode(image_data)
+        filename = f"verb_{verb_index}.jpg"
+
+        snap = PlayerSnapshot(session=session, verb_index=verb_index, verb_base=verb_base)
+        snap.image.save(filename, ContentFile(image_bytes), save=True)
+
+        return JsonResponse({'ok': True, 'id': snap.id})
+    except GameSession.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Session not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=400)
+
+
 # ─── ADMIN PANEL ───────────────────────────────────────────────────────────
 
 def admin_login_view(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('admin_dashboard')
-
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(
+            request,
+            username=request.POST.get('username', '').strip(),
+            password=request.POST.get('password', '')
+        )
         if user and user.is_staff:
             login(request, user)
             return redirect('admin_dashboard')
-        else:
-            return render(request, 'admin_panel/login.html', {'error': True})
-
+        return render(request, 'admin_panel/login.html', {'error': True})
     return render(request, 'admin_panel/login.html', {'error': False})
 
 
@@ -78,19 +123,14 @@ def admin_logout_view(request):
 @login_required
 @user_passes_test(is_staff, login_url='/admin-panel/login/')
 def admin_dashboard(request):
-    total_verbs = IrregularVerb.objects.count()
-    total_sessions = GameSession.objects.count()
-    avg_score = GameSession.objects.aggregate(avg=Avg('score_pct'))['avg'] or 0
-    unique_players = GameSession.objects.values('player_name').distinct().count()
-    recent_sessions = GameSession.objects.all()[:10]
-
     context = {
-        'total_verbs': total_verbs,
-        'total_sessions': total_sessions,
-        'avg_score': round(avg_score),
-        'unique_players': unique_players,
-        'recent_sessions': recent_sessions,
-        'active_tab': 'dashboard',
+        'total_verbs':     IrregularVerb.objects.count(),
+        'total_sessions':  GameSession.objects.count(),
+        'avg_score':       round(GameSession.objects.aggregate(avg=Avg('score_pct'))['avg'] or 0),
+        'unique_players':  GameSession.objects.values('player_name').distinct().count(),
+        'total_snapshots': PlayerSnapshot.objects.count(),
+        'recent_sessions': GameSession.objects.all()[:10],
+        'active_tab':      'dashboard',
     }
     return render(request, 'admin_panel/dashboard.html', context)
 
@@ -104,7 +144,7 @@ def admin_verbs(request):
         if action == 'add':
             base = request.POST.get('base', '').strip().lower()
             past = request.POST.get('past', '').strip().lower()
-            pp = request.POST.get('pp', '').strip().lower()
+            pp   = request.POST.get('pp',   '').strip().lower()
             if not base or not past or not pp:
                 error = 'All three fields are required.'
             elif IrregularVerb.objects.filter(base=base).exists():
@@ -113,31 +153,25 @@ def admin_verbs(request):
                 IrregularVerb.objects.create(base=base, past=past, pp=pp)
                 messages.success(request, f'Verb "{base}" added successfully!')
                 return redirect('admin_verbs')
-
         elif action == 'delete':
-            verb_id = request.POST.get('verb_id')
-            IrregularVerb.objects.filter(id=verb_id).delete()
+            IrregularVerb.objects.filter(id=request.POST.get('verb_id')).delete()
             messages.success(request, 'Verb deleted.')
             return redirect('admin_verbs')
 
-    verbs = IrregularVerb.objects.all()
-    context = {
-        'verbs': verbs,
+    return render(request, 'admin_panel/verbs.html', {
+        'verbs': IrregularVerb.objects.all(),
         'error': error,
         'active_tab': 'verbs',
-    }
-    return render(request, 'admin_panel/verbs.html', context)
+    })
 
 
 @login_required
 @user_passes_test(is_staff, login_url='/admin-panel/login/')
 def admin_sessions(request):
-    sessions = GameSession.objects.all()
-    context = {
-        'sessions': sessions,
-        'active_tab': 'sessions',
-    }
-    return render(request, 'admin_panel/sessions.html', context)
+    return render(request, 'admin_panel/sessions.html', {
+        'sessions':    GameSession.objects.all(),
+        'active_tab':  'sessions',
+    })
 
 
 @login_required
@@ -149,16 +183,13 @@ def admin_delete_session(request, pk):
     return redirect('admin_sessions')
 
 
-def error_400(request, exception=None):
-    return render(request, '400.html', status=400)
-
-def error_403(request, exception=None):
-    return render(request, '403.html', status=403)
-
-
-def error_404(request, exception=None):
-    return render(request, '404.html', status=404)
-
-
-def error_500(request, exception=None):
-    return render(request, '500.html', status=500)
+@login_required
+@user_passes_test(is_staff, login_url='/admin-panel/login/')
+def admin_session_snapshots(request, pk):
+    session   = get_object_or_404(GameSession, pk=pk)
+    snapshots = session.snapshots.all()
+    return render(request, 'admin_panel/snapshots.html', {
+        'session':   session,
+        'snapshots': snapshots,
+        'active_tab': 'sessions',
+    })

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+  <a href="{% url 'admin_sessions' %}" style="color:#64748b;text-decoration:none;font-size:0.85rem;font-weight:700">← Back to Sessions</a>
+</div>
+
+<div class="admin-section-title">📸 Snapshots — {{ session.player_name }}</div>
+<div class="admin-section-sub">
+  Session: {{ session.played_at|date:"Y-m-d H:i" }} &nbsp;|&nbsp;
+  Score: {{ session.correct }}/{{ session.total }} ({{ session.score_pct }}%) &nbsp;|&nbsp;
+  Mode:
+  {% if session.mode == 'past' %}Past Simple
+  {% elif session.mode == 'pp' %}Past Participle
+  {% else %}Both{% endif %}
+</div>
+
+{% if snapshots %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+  {% for snap in snapshots %}
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;overflow:hidden">
+    <img src="{{ snap.image.url }}"
+         alt="Verb {{ snap.verb_index }}"
+         style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+    <div style="padding:12px">
+      <div style="font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:4px">
+        #{{ snap.verb_index }} &nbsp; {{ snap.verb_base }}
+      </div>
+      <div style="font-size:0.75rem;color:#64748b;font-family:'Space Mono',monospace">
+        {{ snap.taken_at|date:"H:i:s" }}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="color:#64748b;font-size:0.9rem;padding:32px;text-align:center;background:#1e293b;border:1px solid #334155;border-radius:12px">
+  📷 No snapshots for this session.<br>
+  <span style="font-size:0.8rem;margin-top:8px;display:block">The student may have denied camera permission.</span>
+</div>
+{% endif %}
+
+{% endblock %}pip install pillow
+python manage.py makemigrations game
+python manage.py migrate
+python manage.py collectstatic --noinput
+sudo systemctl restart verbquest</title>
+</head>
+<body>
+
+</body>
+</html>
