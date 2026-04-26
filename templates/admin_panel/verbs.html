@@ -1,0 +1,61 @@
+{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div class="admin-section-title">Manage Verbs</div>
+<div class="admin-section-sub">Add, edit, or remove irregular verbs from the practice list.</div>
+
+<!-- Add verb form -->
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:24px">
+  <div style="font-weight:800;color:#f1f5f9;margin-bottom:14px;font-size:0.9rem">➕ Add New Verb</div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add">
+    <div class="verb-form-grid">
+      <div>
+        <div class="admin-label">Base Form</div>
+        <input type="text" name="base" class="admin-input" placeholder="e.g. go" required>
+      </div>
+      <div>
+        <div class="admin-label">Past Simple</div>
+        <input type="text" name="past" class="admin-input" placeholder="e.g. went" required>
+      </div>
+      <div>
+        <div class="admin-label">Past Participle</div>
+        <input type="text" name="pp" class="admin-input" placeholder="e.g. gone" required>
+      </div>
+    </div>
+    {% if error %}
+      <div style="color:#f87171;font-size:0.78rem;font-weight:700;margin-bottom:10px">{{ error }}</div>
+    {% endif %}
+    <button type="submit" class="btn-admin btn-admin-primary">Add Verb</button>
+  </form>
+</div>
+
+<!-- Verbs table -->
+<table class="admin-table">
+  <thead>
+    <tr><th>#</th><th>Base</th><th>Past Simple</th><th>Past Participle</th><th>Action</th></tr>
+  </thead>
+  <tbody>
+    {% for verb in verbs %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td><strong style="color:#f1f5f9">{{ verb.base }}</strong></td>
+      <td>{{ verb.past }}</td>
+      <td>{{ verb.pp }}</td>
+      <td>
+        <form method="post" onsubmit="return confirm('Delete this verb?');" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="verb_id" value="{{ verb.id }}">
+          <button type="submit" class="btn-admin btn-admin-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" style="text-align:center;color:#64748b;padding:24px">No verbs found. Add some above!</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

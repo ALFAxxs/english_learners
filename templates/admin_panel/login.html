@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login – VerbQuest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+</head>
+<body style="background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">Enter your credentials to continue</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom:12px;text-align:left">
+        <div class="admin-label" style="color:#94a3b8;margin-bottom:4px">Username</div>
+        <input type="text" name="username" class="admin-input" placeholder="admin" autocomplete="username" required>
+      </div>
+      <div style="margin-bottom:16px;text-align:left">
+        <div class="admin-label" style="color:#94a3b8;margin-bottom:4px">Password</div>
+        <input type="password" name="password" class="admin-input" placeholder="••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-admin btn-admin-primary" style="width:100%;padding:12px;font-size:1rem">Log In</button>
+    </form>
+
+    {% if error %}
+      <div class="login-err">❌ Wrong username or password</div>
+    {% endif %}
+
+    <a href="{% url 'index' %}" style="display:block;margin-top:16px;color:#64748b;font-size:0.85rem;text-align:center;text-decoration:none;font-weight:700">← Back to app</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div class="admin-section-title">Dashboard</div>
+<div class="admin-section-sub">Overview of VerbQuest activity</div>
+
+<div class="admin-cards-row">
+  <div class="admin-stat-card">
+    <div class="asc-val">{{ total_verbs }}</div>
+    <div class="asc-lbl">Total Verbs</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="asc-val">{{ total_sessions }}</div>
+    <div class="asc-lbl">Sessions Played</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="asc-val">{{ avg_score }}%</div>
+    <div class="asc-lbl">Avg. Score</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="asc-val">{{ unique_players }}</div>
+    <div class="asc-lbl">Unique Players</div>
+  </div>
+</div>
+
+<div class="admin-section-title" style="font-size:1rem;margin-bottom:12px">Recent Sessions</div>
+<div class="sessions-list">
+  {% for s in recent_sessions %}
+    <div class="session-row">
+      <div class="session-name">{{ s.player_name }}</div>
+      {% if s.mode == 'past' %}
+        <span class="tag-past">Past Simple</span>
+      {% elif s.mode == 'pp' %}
+        <span class="tag-pp">Past Part.</span>
+      {% else %}
+        <span class="tag-both">Both</span>
+      {% endif %}
+      <div class="session-score {% if s.score_pct >= 80 %}good{% elif s.score_pct >= 50 %}mid{% else %}low{% endif %}">
+        {{ s.correct }}/{{ s.total }} ({{ s.score_pct }}%)
+      </div>
+      <div class="session-meta">{{ s.played_at|date:"Y-m-d H:i" }}</div>
+    </div>
+  {% empty %}
+    <div style="color:#64748b;font-size:0.85rem">No sessions yet.</div>
+  {% endfor %}
+</div>
+
+{% endblock %}

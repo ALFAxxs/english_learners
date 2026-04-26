@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerbQuest – Master Irregular Verbs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/verbquest.css' %}">
+</head>
+<body>
+
+<!-- ===================== LANDING ===================== -->
+<div id="screen-landing" class="screen active">
+  <div class="landing-badge">✨ Free English Practice Tool</div>
+  <h1 class="landing-title">Master <span>Irregular</span><br>Verbs Fast</h1>
+  <p class="landing-sub">The fun, smart way to practice English irregular verbs. Type your answers, get instant feedback, and track your progress.</p>
+  <div class="features-row">
+    <div class="feature-pill">🎯 Interactive Quiz</div>
+    <div class="feature-pill">📊 Score Tracking</div>
+    <div class="feature-pill">⚡ Instant Feedback</div>
+    <div class="feature-pill">📱 Mobile Friendly</div>
+  </div>
+  <button class="btn btn-primary btn-lg" onclick="goTo('screen-step1')">Start Learning 🚀</button>
+</div>
+
+<!-- ===================== STEP 1: Name ===================== -->
+<div id="screen-step1" class="screen setup-wrap">
+  <div class="setup-card">
+    <div class="step-indicator">Step 1 of 3</div>
+    <h2 class="setup-title">👋 What is your name?</h2>
+    <p class="setup-sub">We'll use your name to personalize your results!</p>
+    <input type="text" id="name-input" class="form-input" placeholder="Type your name..." maxlength="30"
+           onkeydown="if(event.key==='Enter')step1Next()">
+    <button class="btn btn-primary" style="width:100%" onclick="step1Next()">Continue →</button>
+    <button class="btn btn-sm btn-outline" style="margin-top:12px" onclick="goTo('screen-landing')">← Back</button>
+  </div>
+</div>
+
+<!-- ===================== STEP 2: Count ===================== -->
+<div id="screen-step2" class="screen setup-wrap">
+  <div class="setup-card">
+    <div class="step-indicator">Step 2 of 3</div>
+    <h2 class="setup-title">🔢 How many verbs?</h2>
+    <p class="setup-sub">Choose how many irregular verbs you want to practice.</p>
+    <div class="option-grid" id="count-options">
+      <button class="option-btn" onclick="selectCount(this,5)">5</button>
+      <button class="option-btn" onclick="selectCount(this,10)">10</button>
+      <button class="option-btn" onclick="selectCount(this,15)">15</button>
+      <button class="option-btn" onclick="selectCount(this,20)">20</button>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="step2Next()">Continue →</button>
+    <button class="btn btn-sm btn-outline" style="margin-top:12px" onclick="goTo('screen-step1')">← Back</button>
+  </div>
+</div>
+
+<!-- ===================== STEP 3: Mode ===================== -->
+<div id="screen-step3" class="screen setup-wrap">
+  <div class="setup-card">
+    <div class="step-indicator">Step 3 of 3</div>
+    <h2 class="setup-title">📚 What to practice?</h2>
+    <p class="setup-sub">Choose which verb forms you want to work on.</p>
+    <div class="option-grid cols-3" id="mode-options">
+      <button class="option-btn" onclick="selectMode(this,'past')">Past<br>Simple</button>
+      <button class="option-btn" onclick="selectMode(this,'pp')">Past<br>Participle</button>
+      <button class="option-btn" onclick="selectMode(this,'both')">Both</button>
+    </div>
+    <button class="btn btn-success" style="width:100%" onclick="startGame()">🎮 Start Game!</button>
+    <button class="btn btn-sm btn-outline" style="margin-top:12px" onclick="goTo('screen-step2')">← Back</button>
+  </div>
+</div>
+
+<!-- ===================== GAME ===================== -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div class="game-logo">VerbQuest</div>
+    <div class="progress-wrap">
+      <div class="progress-label" id="progress-label">Verb 1 of 10</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="score-badge">✅ <span id="score-live">0</span></div>
+  </div>
+  <div class="game-body">
+    <div class="verb-card" id="verb-card">
+      <div class="verb-chip" id="mode-chip">PAST SIMPLE</div>
+      <div class="base-verb" id="base-verb-display">go</div>
+      <div class="base-verb-label">Base form — type the correct form(s) below</div>
+      <div class="fields-wrap" id="fields-wrap"></div>
+      <div class="feedback-msg" id="feedback-msg"></div>
+      <button class="btn btn-primary" style="width:100%" id="check-btn" onclick="checkAnswer()">Check Answer ✓</button>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px;display:none" id="next-btn" onclick="nextVerb()">Next Verb →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="screen-results" class="screen">
+  <div class="results-card">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title">Well Done!</div>
+    <div class="result-sub" id="result-sub">Great job practicing irregular verbs!</div>
+    <div class="score-circle">
+      <div class="pct" id="result-pct">80%</div>
+      <div class="pct-label">Score</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="val" id="r-correct">8</div><div class="lbl">Correct</div></div>
+      <div class="stat-box"><div class="val" id="r-wrong">2</div><div class="lbl">Wrong</div></div>
+      <div class="stat-box"><div class="val" id="r-total">10</div><div class="lbl">Total</div></div>
+      <div class="stat-box"><div class="val" id="r-name">You</div><div class="lbl">Player</div></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn btn-primary" onclick="restartGame()">🔄 Try Again</button>
+      <button class="btn btn-outline" onclick="goTo('screen-landing')">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating admin link -->
+<div class="admin-link" onclick="window.location.href='/admin-panel/login/'">⚙️ Admin</div>
+
+<script>
+  const CSRF_TOKEN = '{{ csrf_token }}';
+  const API_VERBS_URL = '{% url "api_verbs" %}';
+  const API_SAVE_URL = '{% url "api_save_session" %}';
+</script>
+<script src="{% static 'js/verbquest.js' %}"></script>
+</body>
+</html>

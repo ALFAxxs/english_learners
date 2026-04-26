@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerbQuest Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+</head>
+<body>
+<div id="screen-admin" style="display:flex;flex-direction:column;min-height:100vh;">
+
+  <div class="admin-header">
+    <div class="admin-title">⚙️ VerbQuest Admin</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="color:#94a3b8;font-size:0.82rem;font-weight:700">{{ request.user.username }}</span>
+      <div class="admin-badge">ADMIN</div>
+      <a href="{% url 'admin_logout' %}" class="btn-admin btn-admin-danger" style="padding:6px 14px;font-size:0.78rem;text-decoration:none">Log Out</a>
+    </div>
+  </div>
+
+  <div class="admin-body" style="flex:1">
+    <div class="admin-sidebar">
+      <a href="{% url 'admin_dashboard' %}" class="admin-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+        📊 <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="{% url 'admin_verbs' %}" class="admin-nav-item {% if active_tab == 'verbs' %}active{% endif %}">
+        📚 <span class="nav-text">Verbs</span>
+      </a>
+      <a href="{% url 'admin_sessions' %}" class="admin-nav-item {% if active_tab == 'sessions' %}active{% endif %}">
+        🕹️ <span class="nav-text">Sessions</span>
+      </a>
+      <a href="{% url 'index' %}" class="admin-nav-item" style="margin-top:auto">
+        🏠 <span class="nav-text">Back to App</span>
+      </a>
+    </div>
+
+    <div class="admin-content">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="admin-message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

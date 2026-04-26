@@ -1,0 +1,33 @@
+{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div class="admin-section-title">All Sessions</div>
+<div class="admin-section-sub">Full history of all completed game sessions.</div>
+
+<div class="sessions-list">
+  {% for s in sessions %}
+    <div class="session-row">
+      <div class="session-name">{{ s.player_name }}</div>
+      {% if s.mode == 'past' %}
+        <span class="tag-past">Past Simple</span>
+      {% elif s.mode == 'pp' %}
+        <span class="tag-pp">Past Part.</span>
+      {% else %}
+        <span class="tag-both">Both</span>
+      {% endif %}
+      <div class="session-score {% if s.score_pct >= 80 %}good{% elif s.score_pct >= 50 %}mid{% else %}low{% endif %}">
+        {{ s.correct }}/{{ s.total }} ({{ s.score_pct }}%)
+      </div>
+      <div class="session-meta">{{ s.played_at|date:"Y-m-d H:i" }}</div>
+      <form method="post" action="{% url 'admin_delete_session' s.pk %}"
+            onsubmit="return confirm('Delete this session?');" style="margin-left:auto">
+        {% csrf_token %}
+        <button type="submit" class="btn-admin btn-admin-danger" style="padding:4px 12px;font-size:0.72rem">✕</button>
+      </form>
+    </div>
+  {% empty %}
+    <div style="color:#64748b;font-size:0.85rem">No sessions yet.</div>
+  {% endfor %}
+</div>
+
+{% endblock %}

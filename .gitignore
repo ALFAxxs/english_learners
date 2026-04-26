@@ -1,0 +1,62 @@
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ─── Virtual Environment ──────────────────────────────────────────────────────
+venv/
+env/
+.env/
+.venv/
+ENV/
+
+# ─── Environment Variables ────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.env
+
+# ─── Django ───────────────────────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/mediafiles/
+
+# ─── Collected Static (production) ───────────────────────────────────────────
+staticfiles/
+media/
+
+# ─── IDE & Editors ───────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Testing & Coverage ──────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# ─── Build / Distribution ────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ─── Misc ─────────────────────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
+staticfiles
