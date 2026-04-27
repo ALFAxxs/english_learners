@@ -4,6 +4,7 @@
 <div class="admin-section-title">Dashboard</div>
 <div class="admin-section-sub">Overview of VerbQuest activity</div>
 
+<!-- Stats -->
 <div class="admin-cards-row">
   <div class="admin-stat-card"><div class="asc-val">{{ total_verbs }}</div><div class="asc-lbl">Total Verbs</div></div>
   <div class="admin-stat-card"><div class="asc-val">{{ total_sessions }}</div><div class="asc-lbl">Sessions Played</div></div>
@@ -12,6 +13,47 @@
   <div class="admin-stat-card"><div class="asc-val">{{ total_snapshots }}</div><div class="asc-lbl">📸 Snapshots</div></div>
 </div>
 
+<!-- Anti-Cheating Toggle -->
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;margin-bottom:28px">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-weight:900;color:#f1f5f9;font-size:1rem;margin-bottom:4px">
+        📷 Anti-Cheating System
+      </div>
+      <div style="font-size:0.82rem;color:#64748b;max-width:420px">
+        When enabled, students must allow camera access to start the game.
+        A snapshot is taken automatically at each verb — visible only in admin panel.
+      </div>
+    </div>
+    <form method="post" style="display:flex;align-items:center;gap:16px">
+      {% csrf_token %}
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:0.85rem;font-weight:700;color:{% if site_settings.camera_required %}#34d399{% else %}#f87171{% endif %}">
+          {% if site_settings.camera_required %}🟢 ON{% else %}🔴 OFF{% endif %}
+        </span>
+        <label style="position:relative;display:inline-block;width:52px;height:28px;cursor:pointer">
+          <input type="checkbox" name="camera_required"
+                 {% if site_settings.camera_required %}checked{% endif %}
+                 onchange="this.form.submit()"
+                 style="opacity:0;width:0;height:0">
+          <span style="
+            position:absolute;top:0;left:0;right:0;bottom:0;
+            background:{% if site_settings.camera_required %}#10b981{% else %}#334155{% endif %};
+            border-radius:28px;transition:0.3s;
+          "></span>
+          <span style="
+            position:absolute;top:3px;
+            left:{% if site_settings.camera_required %}26px{% else %}3px{% endif %};
+            width:22px;height:22px;
+            background:white;border-radius:50%;transition:0.3s;
+          "></span>
+        </label>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Recent Sessions -->
 <div class="admin-section-title" style="font-size:1rem;margin-bottom:12px">Recent Sessions</div>
 <div class="sessions-list">
   {% for s in recent_sessions %}

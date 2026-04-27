@@ -64,3 +64,24 @@ class PlayerSnapshot(models.Model):
 
     def __str__(self):
         return f"{self.session.player_name} – verb #{self.verb_index} ({self.verb_base})"
+
+
+class SiteSettings(models.Model):
+    camera_required = models.BooleanField(
+        default=False,
+        verbose_name="Camera Required",
+        help_text="If enabled, students must allow camera to start the game."
+    )
+
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return "Site Settings"
+
+    @classmethod
+    def get(cls):
+        """Always returns the single settings instance."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

