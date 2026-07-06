@@ -1,0 +1,47 @@
+.lb-body { background: var(--g-bg); min-height: 100vh; font-family: 'Nunito', sans-serif; color: var(--g-text); overflow-x: hidden; }
+
+.hub-back {
+  position: fixed; top: 20px; left: 20px; z-index: 5;
+  font-weight: 800; font-size: 0.85rem; color: var(--g-text-muted);
+  cursor: pointer; padding: 8px 14px; border-radius: 99px;
+  background: var(--g-card); border: 1.5px solid var(--g-border);
+}
+.hub-back:hover { color: var(--g-primary); border-color: var(--g-primary); }
+.lb-theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 5; }
+
+.lb-main { max-width: 560px; margin: 0 auto; padding: 90px 20px 60px; }
+.lb-title { font-size: 1.9rem; font-weight: 900; text-align: center; margin-bottom: 6px; }
+.lb-sub { text-align: center; color: var(--g-text-muted); font-weight: 600; margin-bottom: 28px; }
+
+.lb-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
+.lb-tab {
+  padding: 10px 22px; border-radius: 99px; border: 1.5px solid var(--g-border);
+  background: var(--g-card); font-weight: 800; font-size: 0.88rem; color: var(--g-text-muted); cursor: pointer;
+  transition: all 0.2s;
+}
+.lb-tab.active { background: var(--g-primary); color: white; border-color: var(--g-primary); }
+
+.lb-list { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.lb-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; }
+.lb-row.top1 { background: linear-gradient(90deg, rgba(245,158,11,0.16), transparent); }
+.lb-row.top2 { background: linear-gradient(90deg, rgba(148,163,184,0.16), transparent); }
+.lb-row.top3 { background: linear-gradient(90deg, rgba(217,119,6,0.12), transparent); }
+
+.lb-rank { font-weight: 900; font-size: 1.05rem; width: 30px; text-align: center; color: var(--g-text-muted); }
+.lb-row.top1 .lb-rank, .lb-row.top1 .lb-name { color: var(--g-gold); }
+
+.lb-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: white; font-size: 0.85rem;
+  background: linear-gradient(135deg, var(--g-primary), var(--g-purple));
+  flex-shrink: 0;
+}
+
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-weight: 800; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-meta { font-size: 0.75rem; color: var(--g-text-muted); font-weight: 700; }
+
+.lb-xp { font-weight: 900; color: var(--g-primary); font-size: 0.95rem; white-space: nowrap; }
+
+.lb-empty { text-align: center; padding: 40px 20px; color: var(--g-text-muted); font-weight: 700; }

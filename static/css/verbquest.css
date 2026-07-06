@@ -481,6 +481,21 @@ body {
 
 .results-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
+.hub-back {
+  position: fixed;
+  top: 20px; left: 20px;
+  z-index: 5;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: white;
+  border: 1.5px solid var(--border);
+}
+.hub-back:hover { color: var(--primary); border-color: var(--primary); }
+
 /* ========== FLOATING ADMIN LINK ========== */
 .admin-link {
   position: fixed;

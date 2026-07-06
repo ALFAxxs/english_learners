@@ -1,0 +1,248 @@
+/* ================================================================
+   HUB PAGE — home screen: player header, daily reward, game grid,
+   achievements shelf.
+   ================================================================ */
+
+body.hub-body {
+  background: var(--g-bg);
+  min-height: 100vh;
+  font-family: 'Nunito', sans-serif;
+  color: var(--g-text);
+  overflow-x: hidden;
+}
+
+.hub-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  padding: 14px 24px;
+  background: var(--g-card-glass);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1.5px solid var(--g-border);
+}
+
+.hub-logo {
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--g-primary);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hub-topbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
+
+.hub-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.hub-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.hub-hero h1 {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.hub-hero h1 span { color: var(--g-primary); }
+.hub-hero p { color: var(--g-text-muted); font-weight: 600; }
+
+.hub-section-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin: 40px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hub-section-title .see-all {
+  margin-left: auto;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--g-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ========== GAME CARDS GRID ========== */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.game-card {
+  position: relative;
+  border-radius: var(--g-radius);
+  padding: 24px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease;
+  border: 1.5px solid var(--g-border);
+  background: var(--g-card);
+  box-shadow: var(--g-shadow);
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+}
+.game-card:hover { transform: translateY(-6px); box-shadow: var(--g-shadow-lg); }
+.game-card:active { transform: translateY(-2px) scale(0.99); }
+
+.game-card .glow {
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  top: -70px; right: -70px;
+  filter: blur(10px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.game-card .icon-badge {
+  width: 54px; height: 54px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.game-card h3 { font-size: 1.15rem; font-weight: 900; margin-bottom: 6px; position: relative; z-index: 1; }
+.game-card p { font-size: 0.85rem; color: var(--g-text-muted); font-weight: 600; line-height: 1.5; flex: 1; position: relative; z-index: 1; }
+
+.game-card .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; position: relative; z-index: 1; }
+.game-card .tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: var(--g-bg-alt);
+  color: var(--g-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.game-card.coming-soon { opacity: 0.6; cursor: not-allowed; }
+.game-card.coming-soon:hover { transform: none; box-shadow: var(--g-shadow); }
+.game-card.coming-soon .tag.soon { background: var(--g-gold); color: #452a00; }
+
+.card-verbquest .icon-badge { background: rgba(59,130,246,0.15); }
+.card-verbquest .glow { background: var(--g-primary); }
+.card-wordhunter .icon-badge { background: rgba(16,185,129,0.15); }
+.card-wordhunter .glow { background: var(--g-secondary); }
+.card-memorycards .icon-badge { background: rgba(139,92,246,0.15); }
+.card-memorycards .glow { background: var(--g-purple); }
+
+/* ========== ACHIEVEMENTS SHELF ========== */
+.achv-shelf {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.achv-chip {
+  flex-shrink: 0;
+  width: 92px;
+  text-align: center;
+  padding: 14px 8px;
+  border-radius: var(--g-radius-sm);
+  border: 1.5px solid var(--g-border);
+  background: var(--g-card);
+}
+.achv-chip .ico { font-size: 1.8rem; margin-bottom: 6px; filter: grayscale(1); opacity: 0.4; }
+.achv-chip.unlocked .ico { filter: none; opacity: 1; }
+.achv-chip .lbl { font-size: 0.68rem; font-weight: 800; color: var(--g-text-muted); }
+.achv-chip.unlocked .lbl { color: var(--g-text); }
+
+/* ========== FOOTER / CONTACT ========== */
+.hub-footer {
+  margin-top: 48px;
+  padding: 28px 24px;
+  text-align: center;
+}
+.hub-footer-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--g-text);
+  margin-bottom: 16px;
+}
+.hub-footer-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.footer-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-decoration: none;
+  border: 1.5px solid var(--g-border);
+  background: var(--g-bg-alt);
+  color: var(--g-text);
+  transition: all 0.2s ease;
+}
+.footer-contact-btn:hover { transform: translateY(-2px); box-shadow: var(--g-shadow); }
+.footer-contact-btn.telegram:hover { border-color: #29a9eb; color: #29a9eb; }
+.footer-contact-btn.mail:hover { border-color: var(--g-primary); color: var(--g-primary); }
+
+/* ========== NAME MODAL ========== */
+.name-modal-card { max-width: 400px; }
+.name-modal-card input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--g-text);
+  background: var(--g-bg-alt);
+  outline: none;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.name-modal-card input:focus { border-color: var(--g-primary); }
+
+/* ========== BUTTONS (local, self-contained) ========== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 28px;
+  border-radius: 99px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--g-primary); color: white; box-shadow: 0 4px 20px rgba(59,130,246,0.35); }
+.btn-primary:hover { background: var(--g-primary-dark); transform: translateY(-2px); }
+
+@media (max-width: 640px) {
+  .hub-main { padding: 24px 16px 64px; }
+  .hub-topbar { padding: 12px 16px; }
+  .game-grid { grid-template-columns: 1fr; }
+}

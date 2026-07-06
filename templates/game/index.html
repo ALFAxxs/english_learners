@@ -7,12 +7,15 @@
 <title>VerbQuest – Master Irregular Verbs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
 <link rel="stylesheet" href="{% static 'css/verbquest.css' %}">
 </head>
 <body>
 
 <!-- ===================== LANDING ===================== -->
 <div id="screen-landing" class="screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle" style="position:fixed;top:20px;right:20px;z-index:5" onclick="G.toggleTheme()">🌙</button>
   <div class="landing-badge">✨ Free English Practice Tool</div>
   <h1 class="landing-title">Master <span>Irregular</span><br>Verbs Fast</h1>
   <p class="landing-sub">The fun, smart way to practice English irregular verbs. Type your answers, get instant feedback, and track your progress.</p>
@@ -112,7 +115,7 @@
     </div>
     <div class="results-actions">
       <button class="btn btn-primary" onclick="restartGame()">🔄 Try Again</button>
-      <button class="btn btn-outline" onclick="goTo('screen-landing')">🏠 Home</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
     </div>
   </div>
 </div>
@@ -122,10 +125,12 @@
 
 <script>
   const CSRF_TOKEN = '{{ csrf_token }}';
+  window.CSRF_TOKEN = CSRF_TOKEN;
   const API_VERBS_URL = '{% url "api_verbs" %}';
   const API_SAVE_URL = '{% url "api_save_session" %}';
   const API_SNAPSHOT_URL = '{% url "api_save_snapshot" %}';
 </script>
+<script src="{% static 'js/gamification.js' %}"></script>
 <script src="{% static 'js/verbquest.js' %}"></script>
 </body>
 </html>

@@ -33,8 +33,24 @@ def error_500(request):
 
 # ─── MAIN APP ──────────────────────────────────────────────────────────────
 
+def hub(request):
+    return render(request, 'game/hub.html')
+
+
 def index(request):
     return render(request, 'game/index.html')
+
+
+def word_hunter(request):
+    return render(request, 'game/word_hunter.html')
+
+
+def memory_cards(request):
+    return render(request, 'game/memory_cards.html')
+
+
+def leaderboard_page(request):
+    return render(request, 'game/leaderboard.html')
 
 
 # ─── API: VERBS ────────────────────────────────────────────────────────────

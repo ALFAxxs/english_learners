@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/leaderboard.css' %}">
+</head>
+<body class="lb-body">
+
+<div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+<button class="theme-toggle lb-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+<div class="lb-main">
+  <div class="lb-title">🏆 Leaderboard</div>
+  <p class="lb-sub">See how you stack up against other learners.</p>
+
+  <div class="lb-tabs">
+    <button class="lb-tab active" data-scope="alltime" onclick="switchScope('alltime', this)">All-Time XP</button>
+    <button class="lb-tab" data-scope="weekly" onclick="switchScope('weekly', this)">This Week</button>
+  </div>
+
+  <div class="lb-list card-glass" id="lb-list"></div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/leaderboard.js' %}"></script>
+</body>
+</html>

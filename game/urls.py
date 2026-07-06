@@ -2,8 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # SPA
-    path('', views.index, name='index'),
+    # Pages
+    path('', views.hub, name='hub'),
+    path('games/verbquest/',     views.index,           name='index'),
+    path('games/word-hunter/',   views.word_hunter,     name='word_hunter'),
+    path('games/memory-cards/',  views.memory_cards,    name='memory_cards'),
+    path('leaderboard/',         views.leaderboard_page, name='leaderboard_page'),
 
     # API
     path('api/verbs/',          views.api_verbs,          name='api_verbs'),

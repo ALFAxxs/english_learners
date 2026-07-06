@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Hunter — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/word_hunter.css' %}">
+</head>
+<body class="wh-body">
+
+<!-- ===================== SETUP ===================== -->
+<div id="wh-screen-setup" class="wh-screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle wh-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="wh-setup-card card-glass">
+    <div class="wh-badge">🔍 Word Hunter</div>
+    <h1>Find the hidden words</h1>
+    <p class="wh-sub">Drag across letters to find as many words as you can before time runs out.</p>
+
+    <div class="wh-option-label">Difficulty</div>
+    <div class="wh-option-grid" id="wh-difficulty-options">
+      <button class="wh-option-btn selected" data-diff="1" onclick="selectDifficulty(this,1)">Easy<br><span>8×8</span></button>
+      <button class="wh-option-btn" data-diff="2" onclick="selectDifficulty(this,2)">Medium<br><span>10×10</span></button>
+      <button class="wh-option-btn" data-diff="3" onclick="selectDifficulty(this,3)">Hard<br><span>12×12</span></button>
+    </div>
+
+    <label class="wh-daily-toggle">
+      <input type="checkbox" id="wh-daily-check">
+      <span>🗓️ Play Today's Daily Challenge (same puzzle for everyone)</span>
+    </label>
+
+    <button class="btn btn-primary" style="width:100%" onclick="startWordHunter()">Start Hunting 🎯</button>
+  </div>
+</div>
+
+<!-- ===================== GAME ===================== -->
+<div id="wh-screen-game" class="wh-screen">
+  <div class="wh-header">
+    <div id="wh-player-bar-mount"></div>
+    <div class="wh-timer-wrap">
+      <div class="wh-timer-label">⏱️ <span id="wh-timer">60</span>s</div>
+      <div class="wh-timer-bar"><div class="wh-timer-fill" id="wh-timer-fill"></div></div>
+    </div>
+    <div class="wh-combo-badge" id="wh-combo-badge" style="display:none">🔥 Combo ×<span id="wh-combo-val">1</span></div>
+  </div>
+
+  <div class="wh-body-layout">
+    <div class="wh-grid-wrap">
+      <div class="wh-grid" id="wh-grid"></div>
+      <div class="wh-powerups">
+        <button class="wh-powerup-btn" onclick="usePowerReveal()">🔎 Reveal <span class="cost">10🪙</span></button>
+        <button class="wh-powerup-btn" onclick="usePowerTime()">⏱️ +15s <span class="cost">15🪙</span></button>
+        <button class="wh-powerup-btn" onclick="usePowerHint()">💡 Hint <span class="cost">20🪙</span></button>
+      </div>
+    </div>
+
+    <div class="wh-words-panel card-glass">
+      <div class="wh-words-title">Words to Find (<span id="wh-found-count">0</span>/<span id="wh-total-count">0</span>)</div>
+      <div class="wh-words-list" id="wh-words-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="wh-screen-results" class="wh-screen">
+  <div class="wh-results-card card-glass">
+    <div class="wh-result-emoji" id="wh-result-emoji">🎉</div>
+    <div class="wh-result-title" id="wh-result-title">Nice Hunting!</div>
+    <div class="wh-result-sub" id="wh-result-sub"></div>
+    <div class="wh-stats-grid">
+      <div class="wh-stat-box"><div class="val" id="wh-r-found">0</div><div class="lbl">Words Found</div></div>
+      <div class="wh-stat-box"><div class="val" id="wh-r-combo">0</div><div class="lbl">Best Combo</div></div>
+      <div class="wh-stat-box"><div class="val" id="wh-r-time">0s</div><div class="lbl">Time Used</div></div>
+    </div>
+    <div class="wh-results-actions">
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Play Again</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+  const API_WORDS_URL = '{% url "g_words" %}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/word_hunter.js' %}"></script>
+</body>
+</html>

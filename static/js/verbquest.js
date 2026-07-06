@@ -118,6 +118,8 @@ function selectMode(el, m) {
 async function startGame() {
   if (!selectedMode) { alert('Please choose what to practice!'); return; }
   state.mode = selectedMode;
+  G.saveName(state.name);
+  G.initPlayer(state.name);
 
   if (ALL_VERBS.length === 0) {
     alert('Verbs are still loading. Please try again in a moment.');
@@ -319,6 +321,17 @@ async function finishGame() {
     `You got ${state.correct} out of ${total} correct. Score: ${pct}%`;
 
   goTo('screen-results');
+
+  const gameResult = await G.completeGame({
+    game_type: 'verbquest',
+    score: state.correct,
+    correct: state.correct,
+    total,
+    duration_seconds: 0,
+    combo: 0,
+    meta: { mode: state.mode },
+  });
+  G.applyGameResult(gameResult);
 }
 
 function restartGame() {

@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Cards — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/memory_cards.css' %}">
+</head>
+<body class="mc-body">
+
+<!-- ===================== SETUP ===================== -->
+<div id="mc-screen-setup" class="mc-screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle mc-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="mc-setup-card card-glass">
+    <div class="mc-badge">🃏 Memory Cards</div>
+    <h1>Match word &amp; meaning</h1>
+    <p class="mc-sub">Flip two cards at a time. Match a word with its meaning before you run out of moves.</p>
+
+    <div class="mc-option-label">Difficulty</div>
+    <div class="mc-option-grid" id="mc-difficulty-options">
+      <button class="mc-option-btn selected" onclick="selectMcDifficulty(this,6)">Easy<br><span>6 pairs</span></button>
+      <button class="mc-option-btn" onclick="selectMcDifficulty(this,8)">Medium<br><span>8 pairs</span></button>
+      <button class="mc-option-btn" onclick="selectMcDifficulty(this,12)">Hard<br><span>12 pairs</span></button>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%" onclick="startMemoryCards()">Start Matching 🎴</button>
+  </div>
+</div>
+
+<!-- ===================== GAME ===================== -->
+<div id="mc-screen-game" class="mc-screen">
+  <div class="mc-header">
+    <div id="mc-player-bar-mount"></div>
+    <div class="mc-stat-row">
+      <div class="mc-stat">⏱️ <span id="mc-time">0</span>s</div>
+      <div class="mc-stat">🔁 <span id="mc-moves">0</span> moves</div>
+      <div class="mc-stat combo" id="mc-combo-badge" style="display:none">🔥 ×<span id="mc-combo-val">1</span></div>
+    </div>
+  </div>
+  <div class="mc-grid" id="mc-grid"></div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="mc-screen-results" class="mc-screen">
+  <div class="mc-results-card card-glass">
+    <div class="mc-stars" id="mc-stars">⭐⭐⭐</div>
+    <div class="mc-result-title" id="mc-result-title">Well Matched!</div>
+    <div class="mc-result-sub" id="mc-result-sub"></div>
+    <div class="mc-stats-grid">
+      <div class="mc-stat-box"><div class="val" id="mc-r-time">0s</div><div class="lbl">Time</div></div>
+      <div class="mc-stat-box"><div class="val" id="mc-r-moves">0</div><div class="lbl">Moves</div></div>
+      <div class="mc-stat-box"><div class="val" id="mc-r-combo">0</div><div class="lbl">Best Combo</div></div>
+    </div>
+    <div class="mc-results-actions">
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Play Again</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+  const API_WORDS_URL = '{% url "g_words" %}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/memory_cards.js' %}"></script>
+</body>
+</html>

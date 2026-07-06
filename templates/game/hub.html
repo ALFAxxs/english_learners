@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Quest — Learn. Play. Level Up.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/hub.css' %}">
+</head>
+<body class="hub-body">
+
+<div class="hub-topbar">
+  <div class="hub-logo">🎮 English Quest</div>
+  <div class="hub-topbar-right">
+    <div id="player-bar-mount"></div>
+    <button class="theme-toggle" onclick="G.toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<div class="hub-main">
+
+  <div class="hub-hero">
+    <div>
+      <h1 id="hero-greeting">Welcome back, <span id="hero-name">learner</span>! 👋</h1>
+      <p>Pick a game below and keep your streak alive.</p>
+    </div>
+    <button class="mystery-box-btn" id="daily-reward-btn" onclick="claimDailyReward()">
+      🎁 Claim Daily Reward
+    </button>
+  </div>
+
+  <div class="hub-section-title">🎯 Games</div>
+  <div class="game-grid">
+
+    <div class="game-card card-verbquest" onclick="location.href='{% url 'index' %}'">
+      <div class="glow"></div>
+      <div class="icon-badge">📝</div>
+      <h3>VerbQuest</h3>
+      <p>Master irregular verbs by typing the past simple and past participle forms before time runs out.</p>
+      <div class="tag-row"><span class="tag">Vocabulary</span><span class="tag">Typing</span></div>
+    </div>
+
+    <div class="game-card card-wordhunter" onclick="location.href='{% url 'word_hunter' %}'">
+      <div class="glow"></div>
+      <div class="icon-badge">🔍</div>
+      <h3>Word Hunter</h3>
+      <p>Hunt hidden words in a letter grid before the 60-second timer runs out. Chain finds for combo bonuses.</p>
+      <div class="tag-row"><span class="tag">Speed</span><span class="tag">Daily Challenge</span></div>
+    </div>
+
+    <div class="game-card card-memorycards" onclick="location.href='{% url 'memory_cards' %}'">
+      <div class="glow"></div>
+      <div class="icon-badge">🃏</div>
+      <h3>Memory Cards</h3>
+      <p>Flip cards to match words with their meanings. Build combos and earn stars for a perfect run.</p>
+      <div class="tag-row"><span class="tag">Memory</span><span class="tag">Vocabulary</span></div>
+    </div>
+
+    <div class="game-card coming-soon">
+      <div class="icon-badge">⚔️</div>
+      <h3>Grammar Battle</h3>
+      <p>Competitive grammar rounds with boss levels every 10 rounds. Coming soon.</p>
+      <div class="tag-row"><span class="tag soon">Coming Soon</span></div>
+    </div>
+
+    <div class="game-card coming-soon">
+      <div class="icon-badge">🎙️</div>
+      <h3>AI Pronunciation Challenge</h3>
+      <p>Speak words and sentences and get an AI-scored pronunciation report. Coming soon.</p>
+      <div class="tag-row"><span class="tag soon">Coming Soon</span></div>
+    </div>
+
+    <div class="game-card coming-soon">
+      <div class="icon-badge">🧳</div>
+      <h3>Daily Survival Challenge</h3>
+      <p>Live real English scenarios — airport, restaurant, job interview — with branching dialogue. Coming soon.</p>
+      <div class="tag-row"><span class="tag soon">Coming Soon</span></div>
+    </div>
+
+  </div>
+
+  <div class="hub-section-title">
+    🏆 Achievements
+    <a class="see-all" href="{% url 'leaderboard_page' %}">View Leaderboard →</a>
+  </div>
+  <div class="achv-shelf" id="achv-shelf"></div>
+
+  <footer class="hub-footer card-glass">
+    <div class="hub-footer-title">💬 Have a question or feedback? Get in touch!</div>
+    <div class="hub-footer-links">
+      <a class="footer-contact-btn telegram" href="https://t.me/offline_us" target="_blank" rel="noopener">
+        ✈️ Telegram: @offline_us
+      </a>
+      <a class="footer-contact-btn mail" href="mailto:bahodirerkinov111@gmail.com">
+        📧 bahodirerkinov111@gmail.com
+      </a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Name capture modal (first visit only) -->
+<div class="g-modal-overlay" id="name-modal" style="display:none">
+  <div class="g-modal name-modal-card">
+    <div class="big-emoji">👋</div>
+    <h3>What should we call you?</h3>
+    <p>Your name is saved on this device so we can track your XP, streak and coins.</p>
+    <input type="text" id="name-modal-input" placeholder="Type your name..." maxlength="30"
+           onkeydown="if(event.key==='Enter')submitName()">
+    <button class="btn btn-primary" style="width:100%" onclick="submitName()">Let's Go 🚀</button>
+  </div>
+</div>
+
+<script>
+  const CSRF_TOKEN = '{{ csrf_token }}';
+  window.CSRF_TOKEN = CSRF_TOKEN;
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/hub.js' %}"></script>
+</body>
+</html>
