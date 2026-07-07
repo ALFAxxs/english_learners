@@ -1,0 +1,40 @@
+{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div class="admin-section-title">All Game Sessions</div>
+<div class="admin-section-sub">Every play across VerbQuest, Word Hunter and Memory Cards — {{ total_count }} total.</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+  <a href="{% url 'admin_game_sessions' %}"
+     class="btn-admin {% if not game_filter %}btn-admin-primary{% endif %}"
+     style="{% if game_filter %}background:#1e293b;border:1px solid #334155;color:#94a3b8{% endif %}">
+    All ({{ total_count }})
+  </a>
+  {% for tab in game_tabs %}
+    <a href="{% url 'admin_game_sessions' %}?game={{ tab.game_type }}"
+       class="btn-admin {% if game_filter == tab.game_type %}btn-admin-primary{% endif %}"
+       style="{% if game_filter != tab.game_type %}background:#1e293b;border:1px solid #334155;color:#94a3b8{% endif %}">
+      {{ tab.label }} ({{ tab.count }})
+    </a>
+  {% endfor %}
+</div>
+
+<div class="sessions-list">
+  {% for s in sessions %}
+    <div class="session-row">
+      <div class="session-name">{{ s.player.name }}</div>
+      {% if s.game_type == 'verbquest' %}<span class="tag-past">VerbQuest</span>
+      {% elif s.game_type == 'word_hunter' %}<span class="tag-pp">Word Hunter</span>
+      {% else %}<span class="tag-both">Memory Cards</span>{% endif %}
+      <div class="session-score good">Score: {{ s.score }}</div>
+      <div class="session-score" style="color:#fbbf24">+{{ s.xp_earned }} XP</div>
+      <div class="session-score" style="color:#f59e0b">+{{ s.coins_earned }} 🪙</div>
+      <div class="session-meta">{{ s.duration_seconds }}s</div>
+      <div class="session-meta">{{ s.played_at|date:"Y-m-d H:i" }}</div>
+    </div>
+  {% empty %}
+    <div style="color:#64748b;font-size:0.85rem">No sessions yet for this filter.</div>
+  {% endfor %}
+</div>
+
+{% endblock %}

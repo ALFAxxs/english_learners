@@ -33,7 +33,10 @@
         📚 <span class="nav-text">Verbs</span>
       </a>
       <a href="{% url 'admin_sessions' %}" class="admin-nav-item {% if active_tab == 'sessions' %}active{% endif %}">
-        🕹️ <span class="nav-text">Sessions</span>
+        🕹️ <span class="nav-text">VerbQuest Sessions</span>
+      </a>
+      <a href="{% url 'admin_game_sessions' %}" class="admin-nav-item {% if active_tab == 'game_sessions' %}active{% endif %}">
+        🎮 <span class="nav-text">All Game Sessions</span>
       </a>
       <a href="{% url 'index' %}" class="admin-nav-item" style="margin-top:auto">
         🏠 <span class="nav-text">Back to App</span>

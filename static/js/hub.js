@@ -56,6 +56,62 @@ async function bootPlayer(name) {
   }
 }
 
+// ================================================================
+// ACCOUNT SAVE / RECOVER MODAL
+// ================================================================
+function openAccountModal() {
+  document.getElementById('account-modal').style.display = 'flex';
+}
+function closeAccountModal() {
+  document.getElementById('account-modal').style.display = 'none';
+}
+
+function switchAccountTab(tab) {
+  const isSave = tab === 'save';
+  document.getElementById('tab-save').classList.toggle('active', isSave);
+  document.getElementById('tab-signin').classList.toggle('active', !isSave);
+  document.getElementById('account-form-save').style.display = isSave ? '' : 'none';
+  document.getElementById('account-form-signin').style.display = isSave ? 'none' : '';
+}
+
+async function submitSaveAccount() {
+  const phone = document.getElementById('save-phone').value.trim();
+  const password = document.getElementById('save-password').value;
+  const errorEl = document.getElementById('save-error');
+  errorEl.textContent = '';
+
+  if (phone.replace(/\D/g, '').length < 9) { errorEl.textContent = "Telefon raqamni to'g'ri kiriting."; return; }
+  if (password.length < 6) { errorEl.textContent = 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak.'; return; }
+
+  const data = await G.registerAccount(phone, password);
+  if (data.ok) {
+    closeAccountModal();
+    G.toast({ icon: '✅', title: 'Progress saved!', sub: 'You can now recover it on any device with this phone number.' });
+  } else {
+    errorEl.textContent = data.error || 'Something went wrong.';
+  }
+}
+
+async function submitSignIn() {
+  const phone = document.getElementById('signin-phone').value.trim();
+  const password = document.getElementById('signin-password').value;
+  const errorEl = document.getElementById('signin-error');
+  errorEl.textContent = '';
+
+  if (!phone || !password) { errorEl.textContent = 'Telefon raqam va parolni kiriting.'; return; }
+
+  const confirmed = confirm("Diqqat: ushbu qurilmadagi joriy progress almashtiriladi. Davom etasizmi?");
+  if (!confirmed) return;
+
+  const data = await G.loginAccount(phone, password);
+  if (data.ok) {
+    closeAccountModal();
+    location.reload();
+  } else {
+    errorEl.textContent = data.error || 'Something went wrong.';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   G.onProfileChange(renderPlayerBar);
   const savedName = G.getSavedName();

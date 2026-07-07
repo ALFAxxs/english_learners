@@ -48,6 +48,30 @@ def player_profile_view(request, uuid):
     return JsonResponse({'ok': True, 'profile': services.player_profile(player)})
 
 
+# ─── ACCOUNT RECOVERY ───────────────────────────────────────────────────────
+
+@require_POST
+def account_register(request):
+    data = _json_body(request)
+    player = _require_player(data)
+    if not player:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    ok, error = services.link_account(player, data.get('phone', ''), data.get('password', ''))
+    if not ok:
+        return JsonResponse({'ok': False, 'error': error}, status=400)
+    return JsonResponse({'ok': True, 'profile': services.player_profile(player)})
+
+
+@require_POST
+def account_login(request):
+    data = _json_body(request)
+    player = services.authenticate_by_phone(data.get('phone', ''), data.get('password', ''))
+    if not player:
+        return JsonResponse({'ok': False, 'error': "Noto'g'ri telefon raqam yoki parol."}, status=400)
+    return JsonResponse({'ok': True, 'uuid': player.uuid, 'profile': services.player_profile(player)})
+
+
 # ─── GAME COMPLETE (single integration point for every game) ──────────────
 
 @require_POST
@@ -88,6 +112,7 @@ def game_complete(request):
         'combo': combo,
     }
     new_achievements = services.check_achievements(player, achievement_context)
+    games_played = GamePlaySession.objects.filter(player=player).count()
 
     return JsonResponse({
         'ok': True,
@@ -97,6 +122,7 @@ def game_complete(request):
         'new_level': new_level,
         'streak': streak,
         'streak_broken': streak_broken,
+        'games_played': games_played,
         'new_achievements': [
             {'code': a.code, 'title': a.title, 'icon': a.icon, 'description': a.description,
              'xp_reward': a.xp_reward, 'coin_reward': a.coin_reward}

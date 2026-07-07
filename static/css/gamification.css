@@ -73,8 +73,8 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
   box-shadow: var(--g-shadow);
 }
 
-/* ========== THEME TOGGLE ========== */
-.theme-toggle {
+/* ========== THEME TOGGLE (and other round icon buttons) ========== */
+.theme-toggle, .icon-btn {
   width: 44px; height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--g-border);
@@ -86,8 +86,8 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: var(--g-shadow);
 }
-.theme-toggle:hover { transform: rotate(20deg) scale(1.05); }
-.theme-toggle:active { transform: scale(0.92); }
+.theme-toggle:hover, .icon-btn:hover { transform: rotate(20deg) scale(1.05); }
+.theme-toggle:active, .icon-btn:active { transform: scale(0.92); }
 
 /* ========== PLAYER HEADER BAR ========== */
 .player-bar {
@@ -221,6 +221,24 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 .g-modal h3 { font-size: 1.5rem; font-weight: 900; color: var(--g-text); margin-bottom: 6px; }
 .g-modal p { color: var(--g-text-muted); font-weight: 600; margin-bottom: 22px; }
 .g-modal .btn { width: 100%; }
+.g-modal input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--g-text);
+  background: var(--g-bg-alt);
+  outline: none;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.g-modal input:focus { border-color: var(--g-primary); }
+.g-modal .error-text { color: var(--g-danger); font-size: 0.82rem; font-weight: 700; margin: -8px 0 12px; min-height: 18px; }
+.g-modal .btn-row { display: flex; gap: 10px; }
+.g-modal .btn-row .btn { width: auto; flex: 1; }
 
 /* ========== CONFETTI CANVAS ========== */
 #confetti-canvas {

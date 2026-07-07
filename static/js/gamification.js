@@ -7,6 +7,7 @@
   const STORAGE_KEY = 'vq_player_id';
   const THEME_KEY = 'vq_theme';
   const NAME_KEY = 'vq_player_name';
+  const NUDGE_SHOWN_KEY = 'vq_save_nudge_shown';
 
   let profile = null;
   const listeners = [];
@@ -116,6 +117,45 @@
       return data;
     } catch (e) {
       return { ok: false };
+    }
+  }
+
+  // ============================================================
+  // ACCOUNT RECOVERY (phone + password)
+  // ============================================================
+  async function registerAccount(phone, password) {
+    const uuid = getPlayerId();
+    try {
+      const res = await fetch('/api/g/account/register/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+        body: JSON.stringify({ uuid, phone, password }),
+      });
+      const data = await res.json();
+      if (data.ok) { profile = data.profile; notify(); }
+      return data;
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  }
+
+  async function loginAccount(phone, password) {
+    try {
+      const res = await fetch('/api/g/account/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+        body: JSON.stringify({ phone, password }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        localStorage.setItem(STORAGE_KEY, data.uuid);
+        saveName(data.profile.name);
+        profile = data.profile;
+        notify();
+      }
+      return data;
+    } catch (e) {
+      return { ok: false, error: String(e) };
     }
   }
 
@@ -253,6 +293,61 @@
   }
 
   // ============================================================
+  // SAVE-PROGRESS NUDGE — shown once, at a meaningful milestone, only to
+  // players who haven't linked a phone number yet.
+  // ============================================================
+  function showSaveProgressNudge() {
+    if (document.getElementById('save-nudge-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'save-nudge-overlay';
+    overlay.className = 'g-modal-overlay';
+    overlay.innerHTML = `
+      <div class="g-modal">
+        <div class="big-emoji">💾</div>
+        <h3>Don't lose your progress!</h3>
+        <p>Save a phone number &amp; password so you can recover your XP, streak and coins on any device.</p>
+        <input type="tel" id="nudge-phone" placeholder="Phone number (+998...)" maxlength="20">
+        <input type="password" id="nudge-password" placeholder="Password (6+ characters)" maxlength="64">
+        <div class="error-text" id="nudge-error"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="nudge-later">Maybe later</button>
+          <button class="btn btn-primary" id="nudge-save">Save</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.querySelector('#nudge-later').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('#nudge-save').addEventListener('click', async () => {
+      const phone = overlay.querySelector('#nudge-phone').value.trim();
+      const password = overlay.querySelector('#nudge-password').value;
+      const errEl = overlay.querySelector('#nudge-error');
+      if (phone.replace(/\D/g, '').length < 9) { errEl.textContent = "Telefon raqamni to'g'ri kiriting."; return; }
+      if (password.length < 6) { errEl.textContent = "Parol kamida 6 ta belgidan iborat bo'lishi kerak."; return; }
+      const result = await registerAccount(phone, password);
+      if (result.ok) {
+        close();
+        toast({ icon: '✅', title: 'Progress saved!', sub: 'You can recover it anytime with this phone number.' });
+      } else {
+        errEl.textContent = result.error || 'Something went wrong.';
+      }
+    });
+  }
+
+  function maybeNudgeSaveProgress(data) {
+    if (!data.profile || data.profile.has_phone) return;
+    if (localStorage.getItem(NUDGE_SHOWN_KEY)) return;
+
+    const milestoneHit = data.games_played === 1 || data.streak === 3 || data.streak === 7;
+    if (!milestoneHit) return;
+
+    localStorage.setItem(NUDGE_SHOWN_KEY, '1');
+    setTimeout(showSaveProgressNudge, data.level_up ? 2200 : 1400);
+  }
+
+  // ============================================================
   // APPLY GAME RESULT — call this after any /api/g/game/complete/ response
   // ============================================================
   function applyGameResult(data) {
@@ -288,6 +383,8 @@
     } else if (data.xp_earned > 0) {
       confettiBurst();
     }
+
+    maybeNudgeSaveProgress(data);
   }
 
   function initials(name) {
@@ -318,6 +415,7 @@
   window.G = {
     getPlayerId, getSavedName, saveName, initPlayer, onProfileChange,
     completeGame, claimDaily, spendCoins, applyGameResult,
+    registerAccount, loginAccount,
     initTheme, toggleTheme,
     toast, confettiBurst, showLevelUpModal,
     playerBarHTML, mountPlayerBar,

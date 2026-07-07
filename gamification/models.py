@@ -5,6 +5,9 @@ class Player(models.Model):
     uuid = models.CharField(max_length=36, unique=True, db_index=True)
     name = models.CharField(max_length=100, default='Player')
 
+    phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    password_hash = models.CharField(max_length=128, null=True, blank=True)
+
     xp = models.PositiveIntegerField(default=0)
     level = models.PositiveIntegerField(default=1)
     coins = models.PositiveIntegerField(default=0)

@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin-panel/stats/',                          views.admin_stats,             name='admin_stats'),
     path('admin-panel/verbs/',                          views.admin_verbs,             name='admin_verbs'),
     path('admin-panel/sessions/',                       views.admin_sessions,          name='admin_sessions'),
+    path('admin-panel/game-sessions/',                  views.admin_game_sessions,     name='admin_game_sessions'),
     path('admin-panel/sessions/<int:pk>/delete/',       views.admin_delete_session,    name='admin_delete_session'),
     path('admin-panel/sessions/<int:pk>/snapshots/',    views.admin_session_snapshots, name='admin_session_snapshots'),
 ]

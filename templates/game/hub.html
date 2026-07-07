@@ -16,6 +16,7 @@
   <div class="hub-logo">🎮 English Quest</div>
   <div class="hub-topbar-right">
     <div id="player-bar-mount"></div>
+    <button class="icon-btn" onclick="openAccountModal()" title="Save / recover account">🔐</button>
     <button class="theme-toggle" onclick="G.toggleTheme()" title="Toggle theme">🌙</button>
   </div>
 </div>
@@ -111,6 +112,36 @@
     <input type="text" id="name-modal-input" placeholder="Type your name..." maxlength="30"
            onkeydown="if(event.key==='Enter')submitName()">
     <button class="btn btn-primary" style="width:100%" onclick="submitName()">Let's Go 🚀</button>
+  </div>
+</div>
+
+<!-- Account save / recover modal -->
+<div class="g-modal-overlay" id="account-modal" style="display:none">
+  <div class="g-modal name-modal-card">
+    <div class="big-emoji">🔐</div>
+    <h3>Your Account</h3>
+    <p>Save your progress with a phone number so you can recover it on any device.</p>
+
+    <div class="account-tabs">
+      <button class="account-tab active" id="tab-save" onclick="switchAccountTab('save')">💾 Save Progress</button>
+      <button class="account-tab" id="tab-signin" onclick="switchAccountTab('signin')">🔑 Sign In</button>
+    </div>
+
+    <div id="account-form-save">
+      <input type="tel" id="save-phone" placeholder="Phone number (+998...)" maxlength="20">
+      <input type="password" id="save-password" placeholder="Password (6+ characters)" maxlength="64">
+      <div class="account-error" id="save-error"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="submitSaveAccount()">Save My Progress</button>
+    </div>
+
+    <div id="account-form-signin" style="display:none">
+      <input type="tel" id="signin-phone" placeholder="Phone number (+998...)" maxlength="20">
+      <input type="password" id="signin-password" placeholder="Password" maxlength="64">
+      <div class="account-error" id="signin-error"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="submitSignIn()">Sign In &amp; Recover</button>
+    </div>
+
+    <button class="btn btn-outline" style="width:100%;margin-top:12px" onclick="closeAccountModal()">Close</button>
   </div>
 </div>
 

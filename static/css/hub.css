@@ -240,6 +240,25 @@ body.hub-body {
 .btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--g-primary); color: white; box-shadow: 0 4px 20px rgba(59,130,246,0.35); }
 .btn-primary:hover { background: var(--g-primary-dark); transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--g-text-muted); border: 2px solid var(--g-border); }
+.btn-outline:hover { border-color: var(--g-primary); color: var(--g-primary); }
+
+/* ========== ACCOUNT MODAL ========== */
+.account-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.account-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 99px;
+  border: 1.5px solid var(--g-border);
+  background: var(--g-bg-alt);
+  color: var(--g-text-muted);
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.account-tab.active { background: var(--g-primary); border-color: var(--g-primary); color: white; }
+.account-error { color: var(--g-danger); font-size: 0.82rem; font-weight: 700; margin: -10px 0 14px; min-height: 18px; }
 
 @media (max-width: 640px) {
   .hub-main { padding: 24px 16px 64px; }

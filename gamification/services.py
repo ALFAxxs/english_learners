@@ -1,6 +1,8 @@
 import math
+import re
 from datetime import timedelta
 
+from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 
 from .models import Player, Achievement, PlayerAchievement, GamePlaySession
@@ -25,6 +27,51 @@ def get_or_create_player(uuid, name=None):
     if not created and name and name.strip() and player.name != name.strip():
         player.name = name.strip()[:100]
         player.save(update_fields=['name'])
+    return player
+
+
+# ─── ACCOUNT RECOVERY (phone + password) ───────────────────────────────────
+
+def normalize_phone(raw):
+    if not raw:
+        return ''
+    digits = re.sub(r'[^\d+]', '', raw.strip())
+    if digits.startswith('+'):
+        return digits
+    if digits.startswith('998') and len(digits) == 12:
+        return '+' + digits
+    if len(digits) == 9:
+        return '+998' + digits
+    return digits
+
+
+def link_account(player, phone, raw_password):
+    """Attach phone+password to this player. Returns (ok, error)."""
+    phone = normalize_phone(phone)
+    if len(phone) < 9:
+        return False, "Telefon raqam noto'g'ri."
+    if not raw_password or len(raw_password) < 6:
+        return False, "Parol kamida 6 ta belgidan iborat bo'lishi kerak."
+
+    existing = Player.objects.filter(phone=phone).exclude(pk=player.pk).first()
+    if existing:
+        return False, "Bu raqam allaqachon ro'yxatdan o'tgan. Kirish orqali foydalaning."
+
+    player.phone = phone
+    player.password_hash = make_password(raw_password)
+    player.save(update_fields=['phone', 'password_hash'])
+    return True, None
+
+
+def authenticate_by_phone(phone, raw_password):
+    """Returns the Player if phone+password match, else None."""
+    phone = normalize_phone(phone)
+    try:
+        player = Player.objects.get(phone=phone)
+    except Player.DoesNotExist:
+        return None
+    if not player.password_hash or not check_password(raw_password, player.password_hash):
+        return None
     return player
 
 
@@ -182,6 +229,7 @@ def player_profile(player):
         'current_streak': player.current_streak,
         'longest_streak': player.longest_streak,
         'weekly_xp': player.weekly_xp,
+        'has_phone': bool(player.phone),
         'unlocked_achievements': list(
             PlayerAchievement.objects.filter(player=player).values_list('achievement__code', flat=True)
         ),

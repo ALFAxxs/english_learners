@@ -220,6 +220,28 @@ def admin_sessions(request):
 
 @login_required
 @user_passes_test(is_staff, login_url='/admin-panel/login/')
+def admin_game_sessions(request):
+    game_filter = request.GET.get('game', '')
+    qs = GamePlaySession.objects.select_related('player').all()
+    if game_filter:
+        qs = qs.filter(game_type=game_filter)
+
+    game_tabs = [
+        {'game_type': gt, 'label': label, 'count': GamePlaySession.objects.filter(game_type=gt).count()}
+        for gt, label in GamePlaySession.GAME_CHOICES
+    ]
+
+    return render(request, 'admin_panel/game_sessions.html', {
+        'sessions':     qs[:200],
+        'game_filter':  game_filter,
+        'game_tabs':    game_tabs,
+        'total_count':  sum(t['count'] for t in game_tabs),
+        'active_tab':   'game_sessions',
+    })
+
+
+@login_required
+@user_passes_test(is_staff, login_url='/admin-panel/login/')
 def admin_delete_session(request, pk):
     if request.method == 'POST':
         GameSession.objects.filter(pk=pk).delete()
