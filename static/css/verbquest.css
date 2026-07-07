@@ -15,6 +15,48 @@
   --radius-sm: 10px;
 }
 
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --card: #141d2e;
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --secondary: #34d399;
+  --secondary-dark: #10b981;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --text: #e8edf7;
+  --text-muted: #8b9bb8;
+  --border: #223049;
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1220;
+    --card: #141d2e;
+    --primary: #60a5fa;
+    --primary-dark: #3b82f6;
+    --secondary: #34d399;
+    --secondary-dark: #10b981;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --text: #e8edf7;
+    --text-muted: #8b9bb8;
+    --border: #223049;
+    --shadow: 0 4px 24px rgba(0,0,0,0.35);
+  }
+}
+
+:root[data-theme="dark"] #screen-landing,
+:root[data-theme="dark"] #screen-results {
+  background: linear-gradient(145deg, #0b1220 0%, #0f172a 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #screen-landing,
+  :root:not([data-theme="light"]) #screen-results {
+    background: linear-gradient(145deg, #0b1220 0%, #0f172a 100%);
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -110,7 +152,7 @@ body {
   z-index: 1;
 }
 .feature-pill {
-  background: white;
+  background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: 99px;
   padding: 10px 20px;
@@ -237,7 +279,7 @@ body {
   padding: 16px 12px;
   border: 2.5px solid var(--border);
   border-radius: var(--radius-sm);
-  background: white;
+  background: var(--card);
   font-family: 'Nunito', sans-serif;
   font-size: 1rem;
   font-weight: 800;
@@ -255,7 +297,7 @@ body {
 }
 
 .game-header {
-  background: white;
+  background: var(--card);
   border-bottom: 1.5px solid var(--border);
   padding: 16px 24px;
   display: flex;
@@ -315,7 +357,7 @@ body {
 }
 
 .verb-card {
-  background: white;
+  background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 40px 32px;
@@ -389,7 +431,7 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
-.answer-input:focus { border-color: var(--primary); background: white; }
+.answer-input:focus { border-color: var(--primary); background: var(--card); }
 .answer-input.correct { border-color: var(--secondary); background: rgba(16,185,129,0.05); }
 .answer-input.wrong { border-color: var(--danger); background: rgba(239,68,68,0.05); }
 .answer-input:disabled { cursor: not-allowed; }
@@ -431,7 +473,7 @@ body {
 }
 
 .results-card {
-  background: white;
+  background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 48px 40px;
@@ -491,7 +533,7 @@ body {
   cursor: pointer;
   padding: 8px 14px;
   border-radius: 99px;
-  background: white;
+  background: var(--card);
   border: 1.5px solid var(--border);
 }
 .hub-back:hover { color: var(--primary); border-color: var(--primary); }

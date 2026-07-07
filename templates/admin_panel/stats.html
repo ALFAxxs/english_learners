@@ -1,0 +1,84 @@
+{% extends "admin_panel/base.html" %}
+{% block content %}
+
+<div class="admin-section-title">Statistics</div>
+<div class="admin-section-sub">Growth &amp; engagement numbers — useful for advertiser / sponsor reporting</div>
+
+<!-- Core reach -->
+<div class="admin-cards-row">
+  <div class="admin-stat-card"><div class="asc-val">{{ total_players }}</div><div class="asc-lbl">Total Players</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ dau }}</div><div class="asc-lbl">Daily Active Users</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ wau }}</div><div class="asc-lbl">Weekly Active Users</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ mau }}</div><div class="asc-lbl">Monthly Active Users</div></div>
+</div>
+
+<!-- Growth -->
+<div class="admin-cards-row">
+  <div class="admin-stat-card"><div class="asc-val">{{ new_players_7d }}</div><div class="asc-lbl">New Players (7d)</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ new_players_30d }}</div><div class="asc-lbl">New Players (30d)</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ total_sessions }}</div><div class="asc-lbl">Total Games Played</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ avg_duration }}s</div><div class="asc-lbl">Avg. Session Length</div></div>
+</div>
+
+<!-- Engagement economy -->
+<div class="admin-cards-row">
+  <div class="admin-stat-card"><div class="asc-val">{{ total_xp_awarded }}</div><div class="asc-lbl">Total XP Earned</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ total_coins }}</div><div class="asc-lbl">Coins in Circulation</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ total_achievements_unlocked }}</div><div class="asc-lbl">Achievements Unlocked</div></div>
+  <div class="admin-stat-card"><div class="asc-val">{{ streak_7plus_pct }}%</div><div class="asc-lbl">Players with 7-day+ Streak</div></div>
+</div>
+
+<!-- Retention -->
+<div class="admin-section-title" style="font-size:1rem;margin-bottom:12px">Retention</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:28px">
+  <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;color:#94a3b8;margin-bottom:6px">
+    <span>3+ day streak</span><span>{{ streak_3plus }} players ({{ streak_3plus_pct }}%)</span>
+  </div>
+  <div style="background:#0f172a;border-radius:99px;height:10px;overflow:hidden;margin-bottom:16px">
+    <div style="width:{{ streak_3plus_pct }}%;height:100%;background:linear-gradient(90deg,#60a5fa,#34d399);border-radius:99px"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;color:#94a3b8;margin-bottom:6px">
+    <span>7+ day streak</span><span>{{ streak_7plus }} players ({{ streak_7plus_pct }}%)</span>
+  </div>
+  <div style="background:#0f172a;border-radius:99px;height:10px;overflow:hidden">
+    <div style="width:{{ streak_7plus_pct }}%;height:100%;background:linear-gradient(90deg,#fbbf24,#f97316);border-radius:99px"></div>
+  </div>
+</div>
+
+<!-- Popularity by game -->
+<div class="admin-section-title" style="font-size:1rem;margin-bottom:12px">Most Played Games</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:28px">
+  {% for g in sessions_by_game %}
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">
+      <span>{{ g.label }}</span><span style="color:#64748b">{{ g.count }} plays</span>
+    </div>
+    <div style="background:#0f172a;border-radius:99px;height:10px;overflow:hidden;margin-bottom:16px">
+      <div style="width:{{ g.pct }}%;height:100%;background:linear-gradient(90deg,#60a5fa,#8b5cf6);border-radius:99px"></div>
+    </div>
+  {% empty %}
+    <div style="color:#64748b;font-size:0.85rem">No games played yet.</div>
+  {% endfor %}
+</div>
+
+<!-- Top players -->
+<div class="admin-section-title" style="font-size:1rem;margin-bottom:12px">Top Players (by XP)</div>
+<table class="admin-table">
+  <thead>
+    <tr><th>#</th><th>Name</th><th>Level</th><th>XP</th><th>Streak</th></tr>
+  </thead>
+  <tbody>
+    {% for p in top_players %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.level }}</td>
+        <td>{{ p.xp }}</td>
+        <td>🔥 {{ p.current_streak }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" style="color:#64748b">No players yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

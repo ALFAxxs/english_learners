@@ -12,10 +12,11 @@
 </head>
 <body>
 
+<div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+<button class="theme-toggle" style="position:fixed;top:20px;right:20px;z-index:5" onclick="G.toggleTheme()">🌙</button>
+
 <!-- ===================== LANDING ===================== -->
 <div id="screen-landing" class="screen active">
-  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
-  <button class="theme-toggle" style="position:fixed;top:20px;right:20px;z-index:5" onclick="G.toggleTheme()">🌙</button>
   <div class="landing-badge">✨ Free English Practice Tool</div>
   <h1 class="landing-title">Master <span>Irregular</span><br>Verbs Fast</h1>
   <p class="landing-sub">The fun, smart way to practice English irregular verbs. Type your answers, get instant feedback, and track your progress.</p>
@@ -25,7 +26,7 @@
     <div class="feature-pill">⚡ Instant Feedback</div>
     <div class="feature-pill">📱 Mobile Friendly</div>
   </div>
-  <button class="btn btn-primary btn-lg" onclick="goTo('screen-step1')">Start Learning 🚀</button>
+  <button class="btn btn-primary btn-lg" onclick="beginSetup()">Start Learning 🚀</button>
 </div>
 
 <!-- ===================== STEP 1: Name ===================== -->

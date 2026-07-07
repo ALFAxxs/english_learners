@@ -1,15 +1,18 @@
 import json
 import base64
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
-from django.db.models import Avg
+from django.db.models import Avg, Sum, Count
 from django.contrib import messages
 from django.core.files.base import ContentFile
+from django.utils import timezone
 
 from .models import IrregularVerb, GameSession, PlayerSnapshot, SiteSettings
+from gamification.models import Player, GamePlaySession, PlayerAchievement
 
 
 def is_staff(user):
@@ -234,3 +237,63 @@ def admin_session_snapshots(request, pk):
         'snapshots':  snapshots,
         'active_tab': 'sessions',
     })
+
+
+# ─── ADMIN PANEL: STATISTICS (for advertisers / growth reporting) ─────────
+
+@login_required
+@user_passes_test(is_staff, login_url='/admin-panel/login/')
+def admin_stats(request):
+    today = timezone.localdate()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+
+    total_players = Player.objects.count()
+    dau = Player.objects.filter(last_active_date=today).count()
+    wau = Player.objects.filter(last_active_date__gte=week_ago).count()
+    mau = Player.objects.filter(last_active_date__gte=month_ago).count()
+
+    new_players_7d = Player.objects.filter(created_at__date__gte=week_ago).count()
+    new_players_30d = Player.objects.filter(created_at__date__gte=month_ago).count()
+
+    total_sessions = GamePlaySession.objects.count()
+    game_labels = dict(GamePlaySession.GAME_CHOICES)
+    sessions_by_game_qs = list(
+        GamePlaySession.objects.values('game_type').annotate(count=Count('id')).order_by('-count')
+    )
+    max_game_count = max([row['count'] for row in sessions_by_game_qs], default=0)
+    sessions_by_game = [
+        {
+            'label': game_labels.get(row['game_type'], row['game_type']),
+            'count': row['count'],
+            'pct': round(row['count'] / max_game_count * 100) if max_game_count else 0,
+        }
+        for row in sessions_by_game_qs
+    ]
+
+    avg_duration = GamePlaySession.objects.aggregate(avg=Avg('duration_seconds'))['avg'] or 0
+    total_xp_awarded = Player.objects.aggregate(s=Sum('xp'))['s'] or 0
+    total_coins = Player.objects.aggregate(s=Sum('coins'))['s'] or 0
+
+    streak_3plus = Player.objects.filter(current_streak__gte=3).count()
+    streak_7plus = Player.objects.filter(current_streak__gte=7).count()
+
+    context = {
+        'total_players': total_players,
+        'dau': dau, 'wau': wau, 'mau': mau,
+        'new_players_7d': new_players_7d,
+        'new_players_30d': new_players_30d,
+        'total_sessions': total_sessions,
+        'sessions_by_game': sessions_by_game,
+        'avg_duration': round(avg_duration),
+        'total_xp_awarded': total_xp_awarded,
+        'total_coins': total_coins,
+        'streak_3plus': streak_3plus,
+        'streak_7plus': streak_7plus,
+        'streak_3plus_pct': round(streak_3plus / total_players * 100) if total_players else 0,
+        'streak_7plus_pct': round(streak_7plus / total_players * 100) if total_players else 0,
+        'total_achievements_unlocked': PlayerAchievement.objects.count(),
+        'top_players': Player.objects.order_by('-xp')[:10],
+        'active_tab': 'stats',
+    }
+    return render(request, 'admin_panel/stats.html', context)

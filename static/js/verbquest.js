@@ -14,6 +14,20 @@ let selectedCount = null, selectedMode = null;
 let cameraStream = null;
 let cameraAllowed = false;
 
+// If the player already has a saved name (e.g. entered on the Hub), skip asking again.
+const _savedName = G.getSavedName();
+if (_savedName) {
+  state.name = _savedName;
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('name-input');
+    if (input) input.value = _savedName;
+  });
+}
+
+function beginSetup() {
+  goTo(state.name ? 'screen-step2' : 'screen-step1');
+}
+
 // ================================================================
 // LOAD VERBS + SETTINGS from Django API
 // ================================================================

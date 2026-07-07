@@ -26,6 +26,9 @@
       <a href="{% url 'admin_dashboard' %}" class="admin-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
         📊 <span class="nav-text">Dashboard</span>
       </a>
+      <a href="{% url 'admin_stats' %}" class="admin-nav-item {% if active_tab == 'stats' %}active{% endif %}">
+        📈 <span class="nav-text">Statistics</span>
+      </a>
       <a href="{% url 'admin_verbs' %}" class="admin-nav-item {% if active_tab == 'verbs' %}active{% endif %}">
         📚 <span class="nav-text">Verbs</span>
       </a>
