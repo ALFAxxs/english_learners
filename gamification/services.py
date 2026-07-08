@@ -8,9 +8,12 @@ from django.utils import timezone
 from .models import (
     Player, Achievement, PlayerAchievement, GamePlaySession,
     GrammarTopic, PlayerTopicProgress,
+    SurvivalScenario, PlayerSurvivalProgress,
+    VBUnit, PlayerVBUnitProgress,
 )
 
 GRAMMAR_PASS_THRESHOLD = 0.7  # correct/total ratio needed to unlock the next topic
+VB_PASS_THRESHOLD = 0.7  # correct/total ratio needed to unlock the next vocabulary unit
 
 DAILY_REWARD_CYCLE = [20, 30, 40, 60, 80, 100, 150]  # coins, indexed by (streak - 1) % 7
 
@@ -162,6 +165,8 @@ def xp_for_game(game_type, score_ratio, combo=0, duration_seconds=0):
         'word_hunter': 80,
         'memory_cards': 70,
         'grammar_battle': 80,
+        'survival_challenge': 70,
+        'vocabulary_builder': 85,
     }.get(game_type, 50)
 
     xp = base * score_ratio
@@ -207,6 +212,12 @@ def check_achievements(player, context):
         ),
         'grammar_topics_completed': PlayerTopicProgress.objects.filter(player=player, completed=True).count(),
         'boss_rounds_cleared': boss_rounds_cleared,
+        'survival_scenarios_completed': (
+            PlayerSurvivalProgress.objects.filter(player=player, completed=True).count()
+        ),
+        'vocab_units_completed': (
+            PlayerVBUnitProgress.objects.filter(player=player, completed=True).count()
+        ),
     }
 
     for achievement in Achievement.objects.all():
@@ -298,6 +309,98 @@ def record_topic_attempt(player, topic, score_pct):
     progress, _ = PlayerTopicProgress.objects.get_or_create(player=player, topic=topic)
     progress.best_score_pct = max(progress.best_score_pct, score_pct)
     if score_pct >= GRAMMAR_PASS_THRESHOLD * 100:
+        progress.completed = True
+    progress.save()
+    return progress
+
+
+# ─── DAILY SURVIVAL CHALLENGE ───────────────────────────────────────────────
+
+_ENDING_RANK = {'bad': 0, 'neutral': 1, 'good': 2}
+
+
+def get_scenarios_with_status(player):
+    """All scenarios are always unlocked; annotate with per-player completion state."""
+    scenarios = list(SurvivalScenario.objects.all())
+    progress_by_scenario = {
+        p.scenario_id: p
+        for p in PlayerSurvivalProgress.objects.filter(player=player, scenario__in=scenarios)
+    }
+    result = []
+    for scenario in scenarios:
+        progress = progress_by_scenario.get(scenario.id)
+        result.append({
+            'id': scenario.id,
+            'name': scenario.name,
+            'icon': scenario.icon,
+            'description': scenario.description,
+            'completed': bool(progress and progress.completed),
+            'best_ending_quality': progress.best_ending_quality if progress else '',
+            'attempts_count': progress.attempts_count if progress else 0,
+        })
+    return result
+
+
+def record_survival_attempt(player, scenario, ending_quality):
+    """Upserts PlayerSurvivalProgress; marks completed once a 'good' ending is reached."""
+    progress, _ = PlayerSurvivalProgress.objects.get_or_create(player=player, scenario=scenario)
+    progress.attempts_count += 1
+    if not progress.best_ending_quality or (
+        _ENDING_RANK.get(ending_quality, 0) > _ENDING_RANK.get(progress.best_ending_quality, 0)
+    ):
+        progress.best_ending_quality = ending_quality
+    if ending_quality == 'good':
+        progress.completed = True
+    progress.save()
+    return progress
+
+
+# ─── VOCABULARY BUILDER ─────────────────────────────────────────────────────
+
+def get_vb_units_with_status(player):
+    """Returns VBUnit list in order, each annotated with unlocked/completed/best_score_pct."""
+    units = list(VBUnit.objects.all())
+    progress_by_unit = {
+        p.unit_id: p
+        for p in PlayerVBUnitProgress.objects.filter(player=player, unit__in=units)
+    }
+
+    result = []
+    previous_completed = True
+    for unit in units:
+        progress = progress_by_unit.get(unit.id)
+        completed = bool(progress and progress.completed)
+        unlocked = previous_completed
+        result.append({
+            'id': unit.id,
+            'name': unit.name,
+            'icon': unit.icon,
+            'description': unit.description,
+            'order': unit.order,
+            'unlocked': unlocked,
+            'completed': completed,
+            'best_score_pct': progress.best_score_pct if progress else 0,
+            'word_count': unit.words.count(),
+        })
+        previous_completed = completed
+    return result
+
+
+def is_vb_unit_unlocked(player, unit):
+    """A unit is unlocked if it's the first, or the previous-order unit is completed."""
+    if unit.order <= 1:
+        return True
+    previous = VBUnit.objects.filter(order=unit.order - 1).first()
+    if not previous:
+        return True
+    return PlayerVBUnitProgress.objects.filter(player=player, unit=previous, completed=True).exists()
+
+
+def record_vb_unit_attempt(player, unit, score_pct):
+    """Upserts PlayerVBUnitProgress; marks completed if score_pct clears the pass threshold."""
+    progress, _ = PlayerVBUnitProgress.objects.get_or_create(player=player, unit=unit)
+    progress.best_score_pct = max(progress.best_score_pct, score_pct)
+    if score_pct >= VB_PASS_THRESHOLD * 100:
         progress.completed = True
     progress.save()
     return progress

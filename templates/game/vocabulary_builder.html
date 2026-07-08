@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%AE</text></svg>">
+<title>Vocabulary Builder — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/vocabulary_builder.css' %}">
+</head>
+<body class="vb-body">
+
+<!-- ===================== SETUP: UNIT SELECT ===================== -->
+<div id="vb-screen-setup" class="vb-screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle vb-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="vb-setup-wrap">
+    <div class="vb-badge">📖 Vocabulary Builder</div>
+    <h1>Choose a unit</h1>
+    <p class="vb-sub">Learn the words, practice, then read a story. Clear 70%+ to unlock the next unit.</p>
+
+    <div class="vb-unit-grid" id="vb-unit-grid">
+      <div class="vb-loading">Loading units…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LESSON: WORD DECK ===================== -->
+<div id="vb-screen-lesson" class="vb-screen">
+  <div class="hub-back" onclick="goToVb('vb-screen-setup')">← Units</div>
+  <button class="theme-toggle vb-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="vb-lesson-wrap">
+    <div class="vb-lesson-title" id="vb-lesson-title">Unit 1</div>
+    <div class="vb-card-counter"><span id="vb-word-index">1</span> / <span id="vb-word-total">20</span></div>
+
+    <div class="vb-word-card card-glass">
+      <div class="vb-word-pos" id="vb-word-pos">adj.</div>
+      <div class="vb-word-main" id="vb-word-main">afraid</div>
+      <div class="vb-word-pron" id="vb-word-pron">[əfreid]</div>
+      <div class="vb-word-def" id="vb-word-def">When someone is afraid, they feel fear.</div>
+      <div class="vb-word-ex" id="vb-word-ex">→ The woman was afraid of what she saw.</div>
+    </div>
+
+    <div class="vb-deck-nav">
+      <button class="btn btn-outline" id="vb-word-prev" onclick="prevWord()">← Prev</button>
+      <button class="btn btn-primary" id="vb-word-next" onclick="nextWord()">Next →</button>
+    </div>
+    <button class="btn btn-primary vb-start-practice" id="vb-start-practice-btn" style="display:none" onclick="startPracticeFromLesson()">Start Practice 📝</button>
+  </div>
+</div>
+
+<!-- ===================== PRACTICE: DRILL + READING ===================== -->
+<div id="vb-screen-game" class="vb-screen">
+  <div class="vb-header">
+    <div id="vb-player-bar-mount"></div>
+    <div class="vb-progress-wrap">
+      <div class="vb-progress-label" id="vb-progress-label">Question 1 of 17</div>
+      <div class="vb-progress-bar"><div class="vb-progress-fill" id="vb-progress-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="vb-body">
+    <!-- Drill question card -->
+    <div class="vb-question-card" id="vb-question-card">
+      <div class="vb-prompt" id="vb-prompt">Loading…</div>
+      <div class="vb-answer-area" id="vb-answer-area"></div>
+      <div class="vb-feedback" id="vb-feedback"></div>
+      <button class="btn btn-outline vb-next-btn" id="vb-next-btn" style="display:none" onclick="nextVbQuestion()">Next →</button>
+    </div>
+
+    <!-- Reading passage card -->
+    <div class="vb-passage-card card-glass" id="vb-passage-card" style="display:none">
+      <div class="vb-passage-badge">📰 Reading Time</div>
+      <h2 id="vb-passage-title">Story Title</h2>
+      <p class="vb-passage-body" id="vb-passage-body"></p>
+      <button class="btn btn-primary" style="width:100%" onclick="startPassageQuestions()">Answer the Questions →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="vb-screen-results" class="vb-screen">
+  <div class="vb-results-card card-glass">
+    <div class="vb-result-emoji" id="vb-result-emoji">🎉</div>
+    <div class="vb-result-title" id="vb-result-title">Unit Complete!</div>
+    <div class="vb-result-sub" id="vb-result-sub"></div>
+    <div class="vb-stats-grid">
+      <div class="vb-stat-box"><div class="val" id="vb-r-score">0/17</div><div class="lbl">Score</div></div>
+      <div class="vb-stat-box"><div class="val" id="vb-r-pct">0%</div><div class="lbl">Accuracy</div></div>
+      <div class="vb-stat-box"><div class="val" id="vb-r-unit">—</div><div class="lbl">Unit Status</div></div>
+    </div>
+    <div class="vb-results-actions">
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Back to Units</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+  const API_VB_UNITS_URL = '{% url "g_vb_units" %}';
+  const API_VB_UNIT_URL = '{% url "g_vb_unit_detail" %}';
+  const API_VB_COMPLETE_URL = '{% url "g_vb_complete" %}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/vocabulary_builder.js' %}"></script>
+</body>
+</html>

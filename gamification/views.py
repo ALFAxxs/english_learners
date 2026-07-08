@@ -5,7 +5,11 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 
-from .models import Player, VocabWord, Achievement, GamePlaySession, GrammarTopic, GrammarQuestion
+from .models import (
+    Player, VocabWord, Achievement, GamePlaySession, GrammarTopic, GrammarQuestion,
+    SurvivalScenario, SurvivalNode, SurvivalChoice,
+    VBUnit, VBWord, VBQuestion, VBPassage,
+)
 from . import services
 
 
@@ -342,6 +346,251 @@ def grammar_complete(request):
         'streak_broken': streak_broken,
         'games_played': games_played,
         'topic_completed': progress.completed,
+        'new_achievements': [
+            {'code': a.code, 'title': a.title, 'icon': a.icon, 'description': a.description,
+             'xp_reward': a.xp_reward, 'coin_reward': a.coin_reward}
+            for a in new_achievements
+        ],
+        'profile': services.player_profile(player),
+    })
+
+
+# ─── DAILY SURVIVAL CHALLENGE ───────────────────────────────────────────────
+
+def _serialize_node(node):
+    """Choices are text-only — quality/feedback are revealed only after the player picks one."""
+    return {
+        'node_id': node.id,
+        'npc_line': node.npc_line,
+        'is_ending': node.is_ending,
+        'ending_quality': node.ending_quality if node.is_ending else None,
+        'choices': [
+            {'id': c.id, 'text': c.choice_text}
+            for c in node.choices.all()
+        ] if not node.is_ending else [],
+    }
+
+
+@require_GET
+def survival_scenarios_view(request):
+    uuid = request.GET.get('uuid', '')
+    try:
+        player = Player.objects.get(uuid=uuid)
+    except Player.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    return JsonResponse({'ok': True, 'scenarios': services.get_scenarios_with_status(player)})
+
+
+@require_GET
+def survival_start_view(request):
+    scenario_id = request.GET.get('scenario_id')
+    try:
+        scenario = SurvivalScenario.objects.get(pk=scenario_id)
+    except (SurvivalScenario.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'scenario not found'}, status=404)
+
+    start_node = scenario.nodes.filter(is_start=True).first()
+    if not start_node:
+        return JsonResponse({'ok': False, 'error': 'scenario has no start node'}, status=500)
+
+    return JsonResponse({
+        'ok': True,
+        'scenario': {'id': scenario.id, 'name': scenario.name, 'icon': scenario.icon},
+        'node': _serialize_node(start_node),
+    })
+
+
+@require_POST
+def survival_choose_view(request):
+    data = _json_body(request)
+    try:
+        choice = SurvivalChoice.objects.select_related('next_node').get(pk=data.get('choice_id'))
+    except (SurvivalChoice.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'choice not found'}, status=404)
+
+    return JsonResponse({
+        'ok': True,
+        'feedback': choice.feedback,
+        'quality': choice.quality,
+        'next_node': _serialize_node(choice.next_node),
+    })
+
+
+@require_POST
+def survival_complete(request):
+    data = _json_body(request)
+    player = _require_player(data)
+    if not player:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    try:
+        scenario = SurvivalScenario.objects.get(pk=data.get('scenario_id'))
+    except (SurvivalScenario.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'scenario not found'}, status=404)
+
+    good_count = max(0, int(data.get('good_count', 0)))
+    ok_count = max(0, int(data.get('ok_count', 0)))
+    bad_count = max(0, int(data.get('bad_count', 0)))
+    total_choices = max(1, int(data.get('total_choices', 1)))
+    ending_quality = data.get('ending_quality') or 'neutral'
+    duration_seconds = int(data.get('duration_seconds', 0))
+
+    score_ratio = min(1.0, (good_count * 2 + ok_count) / (total_choices * 2))
+
+    xp_earned = services.xp_for_game('survival_challenge', score_ratio, 0, duration_seconds)
+    if ending_quality == 'good':
+        xp_earned += 20
+    coins_earned = services.coins_for_game(xp_earned)
+
+    level_up, new_level = services.add_xp(player, xp_earned)
+    services.add_coins(player, coins_earned)
+    streak, streak_broken, _ = services.update_streak(player)
+
+    services.record_survival_attempt(player, scenario, ending_quality)
+
+    GamePlaySession.objects.create(
+        player=player, game_type='survival_challenge', score=good_count,
+        xp_earned=xp_earned, coins_earned=coins_earned, duration_seconds=duration_seconds,
+        meta={
+            'scenario_id': scenario.id, 'scenario_name': scenario.name,
+            'ending_quality': ending_quality, 'good_count': good_count,
+            'ok_count': ok_count, 'bad_count': bad_count,
+        },
+    )
+
+    new_achievements = services.check_achievements(player, {
+        'game_type': 'survival_challenge', 'score_ratio': score_ratio, 'combo': 0,
+    })
+    games_played = GamePlaySession.objects.filter(player=player).count()
+
+    return JsonResponse({
+        'ok': True,
+        'xp_earned': xp_earned,
+        'coins_earned': coins_earned,
+        'level_up': level_up,
+        'new_level': new_level,
+        'streak': streak,
+        'streak_broken': streak_broken,
+        'games_played': games_played,
+        'new_achievements': [
+            {'code': a.code, 'title': a.title, 'icon': a.icon, 'description': a.description,
+             'xp_reward': a.xp_reward, 'coin_reward': a.coin_reward}
+            for a in new_achievements
+        ],
+        'profile': services.player_profile(player),
+    })
+
+
+# ─── VOCABULARY BUILDER ─────────────────────────────────────────────────────
+
+@require_GET
+def vb_units_view(request):
+    uuid = request.GET.get('uuid', '')
+    try:
+        player = Player.objects.get(uuid=uuid)
+    except Player.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    return JsonResponse({'ok': True, 'units': services.get_vb_units_with_status(player)})
+
+
+@require_GET
+def vb_unit_detail_view(request):
+    uuid = request.GET.get('uuid', '')
+    unit_id = request.GET.get('unit_id')
+
+    try:
+        player = Player.objects.get(uuid=uuid)
+    except Player.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    try:
+        unit = VBUnit.objects.get(pk=unit_id)
+    except (VBUnit.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'unit not found'}, status=404)
+
+    if not services.is_vb_unit_unlocked(player, unit):
+        return JsonResponse({'ok': False, 'error': 'unit is locked'}, status=403)
+
+    words = VBWord.objects.filter(unit=unit)
+    questions = VBQuestion.objects.filter(unit=unit)
+    passage = VBPassage.objects.filter(unit=unit).first()
+
+    return JsonResponse({
+        'ok': True,
+        'unit': {'id': unit.id, 'name': unit.name, 'icon': unit.icon, 'description': unit.description},
+        'words': [
+            {
+                'word': w.word, 'pronunciation': w.pronunciation,
+                'part_of_speech': w.part_of_speech, 'definition': w.definition,
+                'example_sentence': w.example_sentence,
+            }
+            for w in words
+        ],
+        'questions': [
+            {'id': q.id, 'prompt': q.prompt, 'options': q.options, 'correct_answer': q.correct_answer}
+            for q in questions
+        ],
+        'passage': {
+            'title': passage.title if passage else '',
+            'body': passage.body if passage else '',
+            'questions': [
+                {'id': pq.id, 'prompt': pq.prompt, 'options': pq.options, 'correct_answer': pq.correct_answer}
+                for pq in (passage.questions.all() if passage else [])
+            ],
+        },
+    })
+
+
+@require_POST
+def vb_complete_view(request):
+    data = _json_body(request)
+    player = _require_player(data)
+    if not player:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    try:
+        unit = VBUnit.objects.get(pk=data.get('unit_id'))
+    except (VBUnit.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'unit not found'}, status=404)
+
+    total = max(1, int(data.get('total', 1)))
+    correct = max(0, int(data.get('correct', 0)))
+    duration_seconds = int(data.get('duration_seconds', 0))
+    score_ratio = min(1.0, correct / total)
+    score_pct = round(score_ratio * 100)
+
+    xp_earned = services.xp_for_game('vocabulary_builder', score_ratio, 0, duration_seconds)
+    coins_earned = services.coins_for_game(xp_earned)
+
+    level_up, new_level = services.add_xp(player, xp_earned)
+    services.add_coins(player, coins_earned)
+    streak, streak_broken, _ = services.update_streak(player)
+
+    progress = services.record_vb_unit_attempt(player, unit, score_pct)
+
+    GamePlaySession.objects.create(
+        player=player, game_type='vocabulary_builder', score=correct,
+        xp_earned=xp_earned, coins_earned=coins_earned, duration_seconds=duration_seconds,
+        meta={'unit_id': unit.id, 'unit_name': unit.name},
+    )
+
+    new_achievements = services.check_achievements(player, {
+        'game_type': 'vocabulary_builder', 'score_ratio': score_ratio, 'combo': 0,
+    })
+    games_played = GamePlaySession.objects.filter(player=player).count()
+
+    return JsonResponse({
+        'ok': True,
+        'xp_earned': xp_earned,
+        'coins_earned': coins_earned,
+        'level_up': level_up,
+        'new_level': new_level,
+        'streak': streak,
+        'streak_broken': streak_broken,
+        'games_played': games_played,
+        'unit_completed': progress.completed,
         'new_achievements': [
             {'code': a.code, 'title': a.title, 'icon': a.icon, 'description': a.description,
              'xp_reward': a.xp_reward, 'coin_reward': a.coin_reward}

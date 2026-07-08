@@ -8,6 +8,8 @@ urlpatterns = [
     path('games/word-hunter/',   views.word_hunter,     name='word_hunter'),
     path('games/memory-cards/',  views.memory_cards,    name='memory_cards'),
     path('games/grammar-battle/', views.grammar_battle, name='grammar_battle'),
+    path('games/survival-challenge/', views.survival_challenge, name='survival_challenge'),
+    path('games/vocabulary-builder/', views.vocabulary_builder, name='vocabulary_builder'),
     path('leaderboard/',         views.leaderboard_page, name='leaderboard_page'),
 
     # API

@@ -15,4 +15,11 @@ urlpatterns = [
     path('grammar/topics/',              views.grammar_topics_view,   name='g_grammar_topics'),
     path('grammar/questions/',           views.grammar_questions_view, name='g_grammar_questions'),
     path('grammar/complete/',            views.grammar_complete,      name='g_grammar_complete'),
+    path('survival/scenarios/',          views.survival_scenarios_view, name='g_survival_scenarios'),
+    path('survival/start/',              views.survival_start_view,     name='g_survival_start'),
+    path('survival/choose/',             views.survival_choose_view,    name='g_survival_choose'),
+    path('survival/complete/',           views.survival_complete,       name='g_survival_complete'),
+    path('vocab/units/',                 views.vb_units_view,        name='g_vb_units'),
+    path('vocab/unit/',                  views.vb_unit_detail_view,  name='g_vb_unit_detail'),
+    path('vocab/complete/',              views.vb_complete_view,     name='g_vb_complete'),
 ]

@@ -27,8 +27,14 @@ ACHIEVEMENTS = [
     ("memory_master", "Memory Master", "Complete 20 Memory Cards sessions", "🃏", 100, 50, "memory_cards_completed", 20),
 
     ("grammar_novice", "Grammar Novice", "Complete your first Grammar Battle topic", "📘", 60, 30, "grammar_topics_completed", 1),
-    ("grammar_master", "Grammar Master", "Complete all 6 Grammar Battle topics", "🎓", 300, 150, "grammar_topics_completed", 6),
+    ("grammar_master", "Grammar Master", "Complete all 12 Grammar Battle topics", "🎓", 300, 150, "grammar_topics_completed", 12),
     ("boss_slayer", "Boss Slayer", "Clear 10 Grammar Battle boss rounds", "⚔️", 150, 75, "boss_rounds_cleared", 10),
+
+    ("survival_first", "First Contact", "Reach a good ending in your first Daily Survival scenario", "🧳", 60, 30, "survival_scenarios_completed", 1),
+    ("world_traveler", "World Traveler", "Reach a good ending in all 16 Daily Survival scenarios", "🌍", 300, 150, "survival_scenarios_completed", 16),
+
+    ("bookworm", "Bookworm", "Complete your first Vocabulary Builder unit", "📖", 60, 30, "vocab_units_completed", 1),
+    ("vocabulary_master", "Vocabulary Master", "Complete all 30 Vocabulary Builder units", "🎓", 400, 200, "vocab_units_completed", 30),
 ]
 
 
@@ -38,7 +44,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         created = 0
         for code, title, desc, icon, xp, coins, cond_type, cond_value in ACHIEVEMENTS:
-            _, was_created = Achievement.objects.get_or_create(
+            achievement, was_created = Achievement.objects.get_or_create(
                 code=code,
                 defaults={
                     'title': title, 'description': desc, 'icon': icon,
@@ -48,6 +54,17 @@ class Command(BaseCommand):
             )
             if was_created:
                 created += 1
+            else:
+                # Backfill/refresh in case content (e.g. topic/scenario counts) changed since
+                # this achievement was first seeded.
+                achievement.title = title
+                achievement.description = desc
+                achievement.icon = icon
+                achievement.xp_reward = xp
+                achievement.coin_reward = coins
+                achievement.condition_type = cond_type
+                achievement.condition_value = cond_value
+                achievement.save()
         self.stdout.write(self.style.SUCCESS(
             f"Seeded {created} new achievements ({Achievement.objects.count()} total)."
         ))

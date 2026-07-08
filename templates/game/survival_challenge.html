@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%AE</text></svg>">
+<title>Daily Survival Challenge — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/survival_challenge.css' %}">
+</head>
+<body class="sv-body">
+
+<!-- ===================== SETUP: SCENARIO SELECT ===================== -->
+<div id="sv-screen-setup" class="sv-screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle sv-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="sv-setup-wrap">
+    <div class="sv-badge">🧳 Daily Survival Challenge</div>
+    <h1>Choose a scenario</h1>
+    <p class="sv-sub">Live a real English conversation. Every choice you make changes how it goes.</p>
+
+    <div class="sv-scenario-grid" id="sv-scenario-grid">
+      <div class="sv-loading">Loading scenarios…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONVERSATION ===================== -->
+<div id="sv-screen-conversation" class="sv-screen">
+  <div class="sv-header">
+    <div id="sv-player-bar-mount"></div>
+    <div class="sv-scenario-name" id="sv-scenario-name">Airport</div>
+  </div>
+
+  <div class="sv-chat-wrap">
+    <div class="sv-chat-log" id="sv-chat-log"></div>
+    <div class="sv-choices" id="sv-choices"></div>
+  </div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="sv-screen-results" class="sv-screen">
+  <div class="sv-results-card card-glass">
+    <div class="sv-result-emoji" id="sv-result-emoji">🎉</div>
+    <div class="sv-result-title" id="sv-result-title">Conversation Complete!</div>
+    <div class="sv-result-sub" id="sv-result-sub"></div>
+    <div class="sv-stats-grid">
+      <div class="sv-stat-box good"><div class="val" id="sv-r-good">0</div><div class="lbl">Good</div></div>
+      <div class="sv-stat-box ok"><div class="val" id="sv-r-ok">0</div><div class="lbl">OK</div></div>
+      <div class="sv-stat-box bad"><div class="val" id="sv-r-bad">0</div><div class="lbl">Bad</div></div>
+    </div>
+    <div class="sv-results-actions">
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Try Another</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+  const API_SURVIVAL_SCENARIOS_URL = '{% url "g_survival_scenarios" %}';
+  const API_SURVIVAL_START_URL = '{% url "g_survival_start" %}';
+  const API_SURVIVAL_CHOOSE_URL = '{% url "g_survival_choose" %}';
+  const API_SURVIVAL_COMPLETE_URL = '{% url "g_survival_complete" %}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/survival_challenge.js' %}"></script>
+</body>
+</html>

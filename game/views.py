@@ -56,6 +56,14 @@ def grammar_battle(request):
     return render(request, 'game/grammar_battle.html')
 
 
+def survival_challenge(request):
+    return render(request, 'game/survival_challenge.html')
+
+
+def vocabulary_builder(request):
+    return render(request, 'game/vocabulary_builder.html')
+
+
 def leaderboard_page(request):
     return render(request, 'game/leaderboard.html')
 

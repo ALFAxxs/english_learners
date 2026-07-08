@@ -151,6 +151,10 @@ body.hub-body {
 .card-memorycards .glow { background: var(--g-purple); }
 .card-grammarbattle .icon-badge { background: rgba(239,68,68,0.15); }
 .card-grammarbattle .glow { background: var(--g-danger); }
+.card-survival .icon-badge { background: rgba(245,158,11,0.15); }
+.card-survival .glow { background: var(--g-gold); }
+.card-vocabbuilder .icon-badge { background: rgba(20,184,166,0.15); }
+.card-vocabbuilder .glow { background: #14b8a6; }
 
 /* ========== ACHIEVEMENTS SHELF ========== */
 .achv-shelf {

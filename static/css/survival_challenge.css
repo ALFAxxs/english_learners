@@ -1,0 +1,105 @@
+.sv-body { background: var(--g-bg); min-height: 100vh; font-family: 'Nunito', sans-serif; color: var(--g-text); overflow-x: hidden; }
+
+.sv-screen { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+.sv-screen.active { display: flex; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(14px);} to { opacity:1; transform: translateY(0);} }
+
+.hub-back {
+  position: fixed; top: 20px; left: 20px; z-index: 5;
+  font-weight: 800; font-size: 0.85rem; color: var(--g-text-muted);
+  cursor: pointer; padding: 8px 14px; border-radius: 99px;
+  background: var(--g-card); border: 1.5px solid var(--g-border);
+}
+.hub-back:hover { color: var(--g-secondary); border-color: var(--g-secondary); }
+.sv-theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 5; }
+
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:15px 30px; border-radius:99px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:800; cursor:pointer; border:none; transition: all 0.2s; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--g-secondary); color: white; box-shadow: 0 4px 20px rgba(16,185,129,0.3); }
+.btn-primary:hover { background: #0ea975; transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--g-primary); border: 2px solid var(--g-primary); }
+.btn-outline:hover { background: var(--g-primary); color: white; }
+
+/* ========== SETUP: SCENARIO GRID ========== */
+#sv-screen-setup { flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+.sv-setup-wrap { max-width: 760px; width: 100%; text-align: center; }
+.sv-badge { display:inline-block; background: rgba(16,185,129,0.12); color: var(--g-secondary); font-weight: 800; font-size: 0.8rem; padding: 6px 16px; border-radius: 99px; margin-bottom: 18px; }
+.sv-setup-wrap h1 { font-size: 1.9rem; font-weight: 900; margin-bottom: 8px; }
+.sv-sub { color: var(--g-text-muted); font-weight: 600; margin-bottom: 30px; }
+
+.sv-scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+.sv-loading { grid-column: 1 / -1; color: var(--g-text-muted); font-weight: 700; padding: 40px; }
+
+.sv-scenario-card {
+  background: var(--g-card); border: 1.5px solid var(--g-border); border-radius: var(--g-radius);
+  padding: 22px 16px; text-align: center; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--g-shadow);
+}
+.sv-scenario-card:hover { transform: translateY(-4px); box-shadow: var(--g-shadow-lg); }
+.sv-scenario-card .icon { font-size: 2.2rem; margin-bottom: 10px; }
+.sv-scenario-card .name { font-weight: 900; font-size: 0.95rem; margin-bottom: 4px; }
+.sv-scenario-card .desc { font-size: 0.75rem; color: var(--g-text-muted); font-weight: 600; line-height: 1.4; min-height: 32px; }
+.sv-scenario-card .status { margin-top: 10px; font-size: 0.72rem; font-weight: 800; }
+.sv-scenario-card .status.good { color: var(--g-secondary); }
+.sv-scenario-card .status.neutral { color: var(--g-gold); }
+.sv-scenario-card .status.bad { color: var(--g-danger); }
+
+/* ========== CONVERSATION ========== */
+#sv-screen-conversation { flex-direction: column; padding: 16px 20px 40px; }
+.sv-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; padding: 10px 4px 20px; }
+.sv-scenario-name { font-weight: 900; font-size: 1.05rem; color: var(--g-secondary); }
+
+.sv-chat-wrap { max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+.sv-chat-log { display: flex; flex-direction: column; gap: 12px; }
+
+.sv-bubble {
+  max-width: 85%; padding: 14px 18px; border-radius: 16px; font-weight: 600; font-size: 0.95rem;
+  line-height: 1.5; animation: bubbleIn 0.3s ease;
+}
+@keyframes bubbleIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+
+.sv-bubble.npc {
+  align-self: flex-start; background: var(--g-card); border: 1.5px solid var(--g-border);
+  border-bottom-left-radius: 4px;
+}
+.sv-bubble.player {
+  align-self: flex-end; background: var(--g-primary); color: white;
+  border-bottom-right-radius: 4px;
+}
+.sv-bubble.feedback {
+  align-self: center; max-width: 95%; font-size: 0.85rem; font-weight: 700;
+  border-radius: 12px; text-align: center;
+}
+.sv-bubble.feedback.good { background: rgba(16,185,129,0.12); color: var(--g-secondary); border: 1.5px solid rgba(16,185,129,0.3); }
+.sv-bubble.feedback.ok { background: rgba(245,158,11,0.12); color: var(--g-gold); border: 1.5px solid rgba(245,158,11,0.3); }
+.sv-bubble.feedback.bad { background: rgba(239,68,68,0.1); color: var(--g-danger); border: 1.5px solid rgba(239,68,68,0.3); }
+
+.sv-choices { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+.sv-choice-btn {
+  padding: 14px 18px; border: 2.5px solid var(--g-border); border-radius: 14px;
+  background: var(--g-bg-alt); font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 700;
+  color: var(--g-text); cursor: pointer; transition: all 0.2s; text-align: left;
+}
+.sv-choice-btn:hover { border-color: var(--g-secondary); }
+.sv-choice-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+/* ========== RESULTS ========== */
+#sv-screen-results { flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+.sv-results-card { max-width: 460px; width: 100%; padding: 44px 36px; text-align: center; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from { opacity:0; transform: scale(0.85);} to { opacity:1; transform: scale(1);} }
+.sv-result-emoji { font-size: 3.6rem; margin-bottom: 10px; }
+.sv-result-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
+.sv-result-sub { color: var(--g-text-muted); font-weight: 600; margin-bottom: 28px; }
+.sv-stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 28px; }
+.sv-stat-box { background: var(--g-bg-alt); border-radius: 12px; padding: 14px 8px; border: 1.5px solid var(--g-border); }
+.sv-stat-box.good .val { color: var(--g-secondary); }
+.sv-stat-box.ok .val { color: var(--g-gold); }
+.sv-stat-box.bad .val { color: var(--g-danger); }
+.sv-stat-box .val { font-size: 1.4rem; font-weight: 900; }
+.sv-stat-box .lbl { font-size: 0.68rem; font-weight: 700; color: var(--g-text-muted); text-transform: uppercase; }
+.sv-results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .sv-bubble { max-width: 92%; }
+}
