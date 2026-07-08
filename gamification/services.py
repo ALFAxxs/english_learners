@@ -5,7 +5,12 @@ from datetime import timedelta
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 
-from .models import Player, Achievement, PlayerAchievement, GamePlaySession
+from .models import (
+    Player, Achievement, PlayerAchievement, GamePlaySession,
+    GrammarTopic, PlayerTopicProgress,
+)
+
+GRAMMAR_PASS_THRESHOLD = 0.7  # correct/total ratio needed to unlock the next topic
 
 DAILY_REWARD_CYCLE = [20, 30, 40, 60, 80, 100, 150]  # coins, indexed by (streak - 1) % 7
 
@@ -156,6 +161,7 @@ def xp_for_game(game_type, score_ratio, combo=0, duration_seconds=0):
         'verbquest': 60,
         'word_hunter': 80,
         'memory_cards': 70,
+        'grammar_battle': 80,
     }.get(game_type, 50)
 
     xp = base * score_ratio
@@ -184,6 +190,10 @@ def check_achievements(player, context):
         s.meta.get('words_found', 0)
         for s in GamePlaySession.objects.filter(player=player, game_type='word_hunter')
     )
+    boss_rounds_cleared = sum(
+        1 for s in GamePlaySession.objects.filter(player=player, game_type='grammar_battle')
+        if s.meta.get('boss_cleared')
+    )
     stats = {
         'games_played': games_played,
         'streak': player.current_streak,
@@ -195,6 +205,8 @@ def check_achievements(player, context):
         'memory_cards_completed': (
             GamePlaySession.objects.filter(player=player, game_type='memory_cards').count()
         ),
+        'grammar_topics_completed': PlayerTopicProgress.objects.filter(player=player, completed=True).count(),
+        'boss_rounds_cleared': boss_rounds_cleared,
     }
 
     for achievement in Achievement.objects.all():
@@ -234,3 +246,58 @@ def player_profile(player):
             PlayerAchievement.objects.filter(player=player).values_list('achievement__code', flat=True)
         ),
     }
+
+
+# ─── GRAMMAR BATTLE ─────────────────────────────────────────────────────────
+
+def get_topics_with_status(player):
+    """Returns GrammarTopic list in order, each annotated with unlocked/completed/best_score_pct."""
+    topics = list(GrammarTopic.objects.all())
+    progress_by_topic = {
+        p.topic_id: p
+        for p in PlayerTopicProgress.objects.filter(player=player, topic__in=topics)
+    }
+
+    result = []
+    previous_completed = True
+    for topic in topics:
+        progress = progress_by_topic.get(topic.id)
+        completed = bool(progress and progress.completed)
+        unlocked = previous_completed
+        result.append({
+            'id': topic.id,
+            'name': topic.name,
+            'icon': topic.icon,
+            'description': topic.description,
+            'order': topic.order,
+            'unlocked': unlocked,
+            'completed': completed,
+            'best_score_pct': progress.best_score_pct if progress else 0,
+            'lesson_rule': topic.lesson_rule,
+            'lesson_structure': topic.lesson_structure,
+            'lesson_signal_words': topic.lesson_signal_words,
+            'lesson_examples': topic.lesson_examples,
+            'lesson_common_mistakes': topic.lesson_common_mistakes,
+        })
+        previous_completed = completed
+    return result
+
+
+def is_topic_unlocked(player, topic):
+    """A topic is unlocked if it's the first, or the previous-order topic is completed."""
+    if topic.order <= 1:
+        return True
+    previous = GrammarTopic.objects.filter(order=topic.order - 1).first()
+    if not previous:
+        return True
+    return PlayerTopicProgress.objects.filter(player=player, topic=previous, completed=True).exists()
+
+
+def record_topic_attempt(player, topic, score_pct):
+    """Upserts PlayerTopicProgress; marks completed if score_pct clears the pass threshold."""
+    progress, _ = PlayerTopicProgress.objects.get_or_create(player=player, topic=topic)
+    progress.best_score_pct = max(progress.best_score_pct, score_pct)
+    if score_pct >= GRAMMAR_PASS_THRESHOLD * 100:
+        progress.completed = True
+    progress.save()
+    return progress

@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Battle — English Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/gamification.css' %}">
+<link rel="stylesheet" href="{% static 'css/grammar_battle.css' %}">
+</head>
+<body class="gb-body">
+
+<!-- ===================== SETUP: TOPIC SELECT ===================== -->
+<div id="gb-screen-setup" class="gb-screen active">
+  <div class="hub-back" onclick="location.href='{% url 'hub' %}'">← Hub</div>
+  <button class="theme-toggle gb-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="gb-setup-wrap">
+    <div class="gb-badge">⚔️ Grammar Battle</div>
+    <h1>Choose your battle</h1>
+    <p class="gb-sub">Clear a topic with 70%+ to unlock the next one. Watch out for the Boss Round!</p>
+
+    <div class="gb-topic-grid" id="gb-topic-grid">
+      <div class="gb-loading">Loading topics…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LESSON (explanation before practice) ===================== -->
+<div id="gb-screen-lesson" class="gb-screen">
+  <div class="hub-back" onclick="goToGb('gb-screen-setup')">← Topics</div>
+  <button class="theme-toggle gb-theme-toggle" onclick="G.toggleTheme()">🌙</button>
+
+  <div class="gb-lesson-wrap card-glass">
+    <div class="gb-lesson-icon" id="gb-lesson-icon">📘</div>
+    <h2 id="gb-lesson-name">Topic Name</h2>
+    <p class="gb-lesson-rule" id="gb-lesson-rule">Rule explanation goes here.</p>
+
+    <div class="gb-lesson-section-title">📐 Structure</div>
+    <p class="gb-lesson-structure" id="gb-lesson-structure"></p>
+
+    <div class="gb-lesson-section-title">🚦 Signal Words</div>
+    <div class="gb-signal-words" id="gb-lesson-signal-words"></div>
+
+    <div class="gb-lesson-section-title">💬 Examples</div>
+    <ul class="gb-lesson-examples" id="gb-lesson-examples"></ul>
+
+    <div class="gb-lesson-section-title">⚠️ Common Mistakes</div>
+    <ul class="gb-lesson-mistakes" id="gb-lesson-mistakes"></ul>
+
+    <button class="btn btn-primary" style="width:100%" onclick="startPracticeFromLesson()">Start Practice ⚔️</button>
+  </div>
+</div>
+
+<!-- ===================== GAME ===================== -->
+<div id="gb-screen-game" class="gb-screen">
+  <div class="gb-header">
+    <div id="gb-player-bar-mount"></div>
+    <div class="gb-progress-wrap">
+      <div class="gb-progress-label">Question <span id="gb-q-index">1</span> of <span id="gb-q-total">10</span></div>
+      <div class="gb-progress-bar"><div class="gb-progress-fill" id="gb-progress-fill"></div></div>
+    </div>
+    <div class="gb-combo-badge" id="gb-combo-badge" style="display:none">🔥 Combo ×<span id="gb-combo-val">1</span></div>
+  </div>
+
+  <div class="gb-timer-bar"><div class="gb-timer-fill" id="gb-timer-fill"></div></div>
+
+  <div class="gb-body">
+    <div class="gb-boss-banner" id="gb-boss-banner" style="display:none">⚔️ BOSS ROUND ⚔️</div>
+
+    <div class="gb-question-card" id="gb-question-card">
+      <div class="gb-prompt" id="gb-prompt">Loading…</div>
+      <div class="gb-answer-area" id="gb-answer-area"></div>
+      <div class="gb-feedback" id="gb-feedback"></div>
+      <button class="btn btn-primary" id="gb-submit-btn" style="width:100%;display:none" onclick="submitAnswer()">Check ✓</button>
+      <button class="btn btn-outline" id="gb-next-btn" style="width:100%;margin-top:10px;display:none" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RESULTS ===================== -->
+<div id="gb-screen-results" class="gb-screen">
+  <div class="gb-results-card card-glass">
+    <div class="gb-result-emoji" id="gb-result-emoji">🎉</div>
+    <div class="gb-result-title" id="gb-result-title">Battle Complete!</div>
+    <div class="gb-result-sub" id="gb-result-sub"></div>
+    <div class="gb-stats-grid">
+      <div class="gb-stat-box"><div class="val" id="gb-r-score">0/10</div><div class="lbl">Score</div></div>
+      <div class="gb-stat-box"><div class="val" id="gb-r-combo">0</div><div class="lbl">Best Combo</div></div>
+      <div class="gb-stat-box"><div class="val" id="gb-r-topic">—</div><div class="lbl">Topic Status</div></div>
+    </div>
+    <div class="gb-results-actions">
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Back to Topics</button>
+      <button class="btn btn-outline" onclick="location.href='{% url 'hub' %}'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CSRF_TOKEN = '{{ csrf_token }}';
+  const API_GRAMMAR_TOPICS_URL = '{% url "g_grammar_topics" %}';
+  const API_GRAMMAR_QUESTIONS_URL = '{% url "g_grammar_questions" %}';
+  const API_GRAMMAR_COMPLETE_URL = '{% url "g_grammar_complete" %}';
+</script>
+<script src="{% static 'js/gamification.js' %}"></script>
+<script src="{% static 'js/grammar_battle.js' %}"></script>
+</body>
+</html>

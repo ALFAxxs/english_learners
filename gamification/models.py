@@ -66,6 +66,8 @@ class Achievement(models.Model):
         ('coins_earned', 'Total Coins Earned'),
         ('word_hunter_words_found', 'Total Words Found In Word Hunter'),
         ('memory_cards_completed', 'Memory Cards Sessions Completed'),
+        ('grammar_topics_completed', 'Grammar Topics Completed'),
+        ('boss_rounds_cleared', 'Grammar Boss Rounds Cleared'),
     ]
 
     code = models.CharField(max_length=50, unique=True)
@@ -106,6 +108,7 @@ class GamePlaySession(models.Model):
         ('verbquest', 'VerbQuest'),
         ('word_hunter', 'Word Hunter'),
         ('memory_cards', 'Memory Cards'),
+        ('grammar_battle', 'Grammar Battle'),
     ]
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='play_sessions')
@@ -124,3 +127,64 @@ class GamePlaySession(models.Model):
 
     def __str__(self):
         return f"{self.player.name} – {self.get_game_type_display()} – {self.played_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+# ─── GRAMMAR BATTLE ─────────────────────────────────────────────────────────
+
+class GrammarTopic(models.Model):
+    name = models.CharField(max_length=100)
+    order = models.PositiveSmallIntegerField(unique=True)
+    icon = models.CharField(max_length=10, default='📘')
+    description = models.CharField(max_length=200, blank=True)
+    lesson_rule = models.TextField(blank=True)
+    lesson_structure = models.TextField(blank=True)
+    lesson_signal_words = models.JSONField(default=list, blank=True)
+    lesson_examples = models.JSONField(default=list, blank=True)
+    lesson_common_mistakes = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Grammar Topic"
+        verbose_name_plural = "Grammar Topics"
+
+    def __str__(self):
+        return f"{self.order}. {self.icon} {self.name}"
+
+
+class GrammarQuestion(models.Model):
+    QUESTION_TYPE_CHOICES = [
+        ('multiple_choice', 'Multiple Choice'),
+        ('fill_blank', 'Fill In The Blank'),
+        ('drag_drop', 'Drag And Drop (Word Order)'),
+    ]
+
+    topic = models.ForeignKey(GrammarTopic, on_delete=models.CASCADE, related_name='questions')
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
+    prompt = models.CharField(max_length=300)
+    options = models.JSONField(default=list, blank=True)
+    correct_answer = models.CharField(max_length=200)
+    is_boss = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['topic', 'id']
+        verbose_name = "Grammar Question"
+        verbose_name_plural = "Grammar Questions"
+
+    def __str__(self):
+        return f"[{self.topic.name}] {self.prompt[:50]}"
+
+
+class PlayerTopicProgress(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='topic_progress')
+    topic = models.ForeignKey(GrammarTopic, on_delete=models.CASCADE, related_name='player_progress')
+    completed = models.BooleanField(default=False)
+    best_score_pct = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('player', 'topic')
+        verbose_name = "Player Topic Progress"
+        verbose_name_plural = "Player Topic Progress"
+
+    def __str__(self):
+        return f"{self.player.name} – {self.topic.name} ({'done' if self.completed else 'in progress'})"

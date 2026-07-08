@@ -7,6 +7,7 @@ urlpatterns = [
     path('games/verbquest/',     views.index,           name='index'),
     path('games/word-hunter/',   views.word_hunter,     name='word_hunter'),
     path('games/memory-cards/',  views.memory_cards,    name='memory_cards'),
+    path('games/grammar-battle/', views.grammar_battle, name='grammar_battle'),
     path('leaderboard/',         views.leaderboard_page, name='leaderboard_page'),
 
     # API

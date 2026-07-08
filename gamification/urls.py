@@ -12,4 +12,7 @@ urlpatterns = [
     path('leaderboard/',                 views.leaderboard,         name='g_leaderboard'),
     path('achievements/',                views.achievements_view,   name='g_achievements'),
     path('words/',                       views.words_view,          name='g_words'),
+    path('grammar/topics/',              views.grammar_topics_view,   name='g_grammar_topics'),
+    path('grammar/questions/',           views.grammar_questions_view, name='g_grammar_questions'),
+    path('grammar/complete/',            views.grammar_complete,      name='g_grammar_complete'),
 ]

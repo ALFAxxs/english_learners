@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 
-from .models import Player, VocabWord, Achievement, GamePlaySession
+from .models import Player, VocabWord, Achievement, GamePlaySession, GrammarTopic, GrammarQuestion
 from . import services
 
 
@@ -232,3 +232,120 @@ def words_view(request):
     rng.shuffle(words)
 
     return JsonResponse({'ok': True, 'words': words[:count]})
+
+
+# ─── GRAMMAR BATTLE ─────────────────────────────────────────────────────────
+
+@require_GET
+def grammar_topics_view(request):
+    uuid = request.GET.get('uuid', '')
+    try:
+        player = Player.objects.get(uuid=uuid)
+    except Player.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    return JsonResponse({'ok': True, 'topics': services.get_topics_with_status(player)})
+
+
+@require_GET
+def grammar_questions_view(request):
+    uuid = request.GET.get('uuid', '')
+    topic_id = request.GET.get('topic_id')
+    count = min(20, int(request.GET.get('count', 10)))
+
+    try:
+        player = Player.objects.get(uuid=uuid)
+    except Player.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    try:
+        topic = GrammarTopic.objects.get(pk=topic_id)
+    except (GrammarTopic.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'topic not found'}, status=404)
+
+    if not services.is_topic_unlocked(player, topic):
+        return JsonResponse({'ok': False, 'error': 'topic is locked'}, status=403)
+
+    normal_qs = list(GrammarQuestion.objects.filter(topic=topic, is_boss=False))
+    boss_qs = list(GrammarQuestion.objects.filter(topic=topic, is_boss=True))
+    random.shuffle(normal_qs)
+    random.shuffle(boss_qs)
+
+    round_questions = normal_qs[:count - 1]
+    if boss_qs:
+        round_questions.append(boss_qs[0])
+    elif normal_qs[count - 1:count]:
+        round_questions.append(normal_qs[count - 1])
+
+    return JsonResponse({
+        'ok': True,
+        'topic': {'id': topic.id, 'name': topic.name, 'icon': topic.icon},
+        'questions': [
+            {
+                'id': q.id, 'question_type': q.question_type, 'prompt': q.prompt,
+                'options': q.options, 'correct_answer': q.correct_answer, 'is_boss': q.is_boss,
+            }
+            for q in round_questions
+        ],
+    })
+
+
+@require_POST
+def grammar_complete(request):
+    data = _json_body(request)
+    player = _require_player(data)
+    if not player:
+        return JsonResponse({'ok': False, 'error': 'player not found'}, status=404)
+
+    try:
+        topic = GrammarTopic.objects.get(pk=data.get('topic_id'))
+    except (GrammarTopic.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'ok': False, 'error': 'topic not found'}, status=404)
+
+    total = max(1, int(data.get('total', 1)))
+    correct = max(0, int(data.get('correct', 0)))
+    combo = int(data.get('combo', 0))
+    duration_seconds = int(data.get('duration_seconds', 0))
+    boss_cleared = bool(data.get('boss_cleared'))
+    score_ratio = min(1.0, correct / total)
+    score_pct = round(score_ratio * 100)
+
+    xp_earned = services.xp_for_game('grammar_battle', score_ratio, combo, duration_seconds)
+    if boss_cleared:
+        xp_earned += 25
+    coins_earned = services.coins_for_game(xp_earned)
+
+    level_up, new_level = services.add_xp(player, xp_earned)
+    services.add_coins(player, coins_earned)
+    streak, streak_broken, _ = services.update_streak(player)
+
+    progress = services.record_topic_attempt(player, topic, score_pct)
+
+    GamePlaySession.objects.create(
+        player=player, game_type='grammar_battle', score=correct,
+        xp_earned=xp_earned, coins_earned=coins_earned, duration_seconds=duration_seconds,
+        meta={'topic_id': topic.id, 'topic_name': topic.name, 'boss_cleared': boss_cleared},
+    )
+
+    new_achievements = services.check_achievements(player, {
+        'game_type': 'grammar_battle', 'score_ratio': score_ratio, 'combo': combo,
+    })
+    games_played = GamePlaySession.objects.filter(player=player).count()
+
+    return JsonResponse({
+        'ok': True,
+        'xp_earned': xp_earned,
+        'coins_earned': coins_earned,
+        'level_up': level_up,
+        'new_level': new_level,
+        'streak': streak,
+        'streak_broken': streak_broken,
+        'games_played': games_played,
+        'topic_completed': progress.completed,
+        'new_achievements': [
+            {'code': a.code, 'title': a.title, 'icon': a.icon, 'description': a.description,
+             'xp_reward': a.xp_reward, 'coin_reward': a.coin_reward}
+            for a in new_achievements
+        ],
+        'profile': services.player_profile(player),
+    })

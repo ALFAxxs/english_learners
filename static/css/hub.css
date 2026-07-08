@@ -149,6 +149,8 @@ body.hub-body {
 .card-wordhunter .glow { background: var(--g-secondary); }
 .card-memorycards .icon-badge { background: rgba(139,92,246,0.15); }
 .card-memorycards .glow { background: var(--g-purple); }
+.card-grammarbattle .icon-badge { background: rgba(239,68,68,0.15); }
+.card-grammarbattle .glow { background: var(--g-danger); }
 
 /* ========== ACHIEVEMENTS SHELF ========== */
 .achv-shelf {

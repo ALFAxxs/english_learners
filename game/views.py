@@ -52,6 +52,10 @@ def memory_cards(request):
     return render(request, 'game/memory_cards.html')
 
 
+def grammar_battle(request):
+    return render(request, 'game/grammar_battle.html')
+
+
 def leaderboard_page(request):
     return render(request, 'game/leaderboard.html')
 

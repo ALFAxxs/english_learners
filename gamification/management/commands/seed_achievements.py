@@ -25,6 +25,10 @@ ACHIEVEMENTS = [
     ("word_legend", "Word Legend", "Find 200 words in Word Hunter", "🏹", 250, 120, "word_hunter_words_found", 200),
 
     ("memory_master", "Memory Master", "Complete 20 Memory Cards sessions", "🃏", 100, 50, "memory_cards_completed", 20),
+
+    ("grammar_novice", "Grammar Novice", "Complete your first Grammar Battle topic", "📘", 60, 30, "grammar_topics_completed", 1),
+    ("grammar_master", "Grammar Master", "Complete all 6 Grammar Battle topics", "🎓", 300, 150, "grammar_topics_completed", 6),
+    ("boss_slayer", "Boss Slayer", "Clear 10 Grammar Battle boss rounds", "⚔️", 150, 75, "boss_rounds_cleared", 10),
 ]
 
 
