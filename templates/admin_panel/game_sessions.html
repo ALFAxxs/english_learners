@@ -2,7 +2,7 @@
 {% block content %}
 
 <div class="admin-section-title">All Game Sessions</div>
-<div class="admin-section-sub">Every play across VerbQuest, Word Hunter and Memory Cards — {{ total_count }} total.</div>
+<div class="admin-section-sub">Every play across all games — {{ total_count }} total.</div>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
   <a href="{% url 'admin_game_sessions' %}"
@@ -23,9 +23,13 @@
   {% for s in sessions %}
     <div class="session-row">
       <div class="session-name">{{ s.player.name }}</div>
-      {% if s.game_type == 'verbquest' %}<span class="tag-past">VerbQuest</span>
-      {% elif s.game_type == 'word_hunter' %}<span class="tag-pp">Word Hunter</span>
-      {% else %}<span class="tag-both">Memory Cards</span>{% endif %}
+      {% if s.game_type == 'verbquest' %}<span class="tag-past">{{ s.get_game_type_display }}</span>
+      {% elif s.game_type == 'word_hunter' %}<span class="tag-pp">{{ s.get_game_type_display }}</span>
+      {% elif s.game_type == 'memory_cards' %}<span class="tag-both">{{ s.get_game_type_display }}</span>
+      {% elif s.game_type == 'grammar_battle' %}<span class="tag-grammar">{{ s.get_game_type_display }}</span>
+      {% elif s.game_type == 'survival_challenge' %}<span class="tag-survival">{{ s.get_game_type_display }}</span>
+      {% elif s.game_type == 'vocabulary_builder' %}<span class="tag-vocab">{{ s.get_game_type_display }}</span>
+      {% else %}<span class="tag-both">{{ s.get_game_type_display }}</span>{% endif %}
       <div class="session-score good">Score: {{ s.score }}</div>
       <div class="session-score" style="color:#fbbf24">+{{ s.xp_earned }} XP</div>
       <div class="session-score" style="color:#f59e0b">+{{ s.coins_earned }} 🪙</div>

@@ -123,7 +123,10 @@ body {
 /* ========== TAGS ========== */
 .tag-past { background: rgba(59,130,246,0.15); color: #60a5fa; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
 .tag-pp { background: rgba(16,185,129,0.15); color: #34d399; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
-.tag-both { background: rgba(245,158,11,0.15); color: #fbbf24; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+.tag-both { background: rgba(139,92,246,0.15); color: #a78bfa; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+.tag-grammar { background: rgba(239,68,68,0.15); color: #f87171; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+.tag-survival { background: rgba(245,158,11,0.15); color: #fbbf24; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
+.tag-vocab { background: rgba(20,184,166,0.15); color: #2dd4bf; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; }
 
 /* ========== VERB FORM ========== */
 .verb-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
