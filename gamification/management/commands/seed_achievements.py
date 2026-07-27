@@ -34,7 +34,7 @@ ACHIEVEMENTS = [
     ("world_traveler", "World Traveler", "Reach a good ending in all 16 Daily Survival scenarios", "🌍", 300, 150, "survival_scenarios_completed", 16),
 
     ("bookworm", "Bookworm", "Complete your first Vocabulary Builder unit", "📖", 60, 30, "vocab_units_completed", 1),
-    ("vocabulary_master", "Vocabulary Master", "Complete all 30 Vocabulary Builder units", "🎓", 400, 200, "vocab_units_completed", 30),
+    ("vocabulary_master", "Vocabulary Master", "Complete all 60 Vocabulary Builder units", "🎓", 400, 200, "vocab_units_completed", 60),
 ]
 
 

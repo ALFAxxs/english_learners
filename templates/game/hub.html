@@ -34,6 +34,28 @@
     </button>
   </div>
 
+  <!-- Mobile quick-pick strip: all live games in one swipeable row, visible with no scrolling -->
+  <div class="quick-games-strip" id="quick-games-strip">
+    <div class="qg-pill qg-verbquest" onclick="location.href='{% url 'index' %}'">
+      <div class="qg-icon">📝</div><div class="qg-label">VerbQuest</div>
+    </div>
+    <div class="qg-pill qg-wordhunter" onclick="location.href='{% url 'word_hunter' %}'">
+      <div class="qg-icon">🔍</div><div class="qg-label">Word Hunter</div>
+    </div>
+    <div class="qg-pill qg-memorycards" onclick="location.href='{% url 'memory_cards' %}'">
+      <div class="qg-icon">🃏</div><div class="qg-label">Memory Cards</div>
+    </div>
+    <div class="qg-pill qg-grammarbattle" onclick="location.href='{% url 'grammar_battle' %}'">
+      <div class="qg-icon">⚔️</div><div class="qg-label">Grammar Battle</div>
+    </div>
+    <div class="qg-pill qg-vocabbuilder" onclick="location.href='{% url 'vocabulary_builder' %}'">
+      <div class="qg-icon">📖</div><div class="qg-label">Vocabulary</div>
+    </div>
+    <div class="qg-pill qg-survival" onclick="location.href='{% url 'survival_challenge' %}'">
+      <div class="qg-icon">🧳</div><div class="qg-label">Survival</div>
+    </div>
+  </div>
+
   <div class="hub-section-title">🎯 Games</div>
   <div class="game-grid">
 
@@ -69,18 +91,11 @@
       <div class="tag-row"><span class="tag">Grammar</span><span class="tag">Topics</span></div>
     </div>
 
-    <div class="game-card coming-soon">
-      <div class="icon-badge">🎙️</div>
-      <h3>AI Pronunciation Challenge</h3>
-      <p>Speak words and sentences and get an AI-scored pronunciation report. Coming soon.</p>
-      <div class="tag-row"><span class="tag soon">Coming Soon</span></div>
-    </div>
-
     <div class="game-card card-vocabbuilder" onclick="location.href='{% url 'vocabulary_builder' %}'">
       <div class="glow"></div>
       <div class="icon-badge">📖</div>
       <h3>Vocabulary Builder</h3>
-      <p>Learn 30 units of essential words, practice with exercises, then read a short story to test what you've learned. Clear 70%+ to unlock the next unit.</p>
+      <p>Learn 60 units of essential words, practice with exercises, then read a short story to test what you've learned. Clear 70%+ to unlock the next unit.</p>
       <div class="tag-row"><span class="tag">Vocabulary</span><span class="tag">Reading</span></div>
     </div>
 
@@ -90,6 +105,13 @@
       <h3>Daily Survival Challenge</h3>
       <p>Live real English scenarios — airport, restaurant, job interview — with branching dialogue. Every choice matters.</p>
       <div class="tag-row"><span class="tag">Conversation</span><span class="tag">Real Life</span></div>
+    </div>
+
+    <div class="game-card coming-soon">
+      <div class="icon-badge">🎙️</div>
+      <h3>AI Pronunciation Challenge</h3>
+      <p>Speak words and sentences and get an AI-scored pronunciation report. Coming soon.</p>
+      <div class="tag-row"><span class="tag soon">Coming Soon</span></div>
     </div>
 
   </div>
